@@ -1,2 +1,1 @@
-# youtube-scraper-db
-A repository for scraping YouTube content and storing it in a database
+This repository is empty. Any task executed on it should be considered a new capability and needs to be created.
