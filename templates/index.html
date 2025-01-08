@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Content Database</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>YouTube Content Database</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Videos</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>URL</th>
+                        <th>Views</th>
+                        <th>Upload Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for video in videos %}
+                    <tr>
+                        <td>{{ video.title }}</td>
+                        <td><a href="{{ video.url }}" target="_blank">{{ video.url }}</a></td>
+                        <td>{{ video.views }}</td>
+                        <td>{{ video.upload_date }}</td>
+                        <td>
+                            <a href="{{ url_for('edit', id=video.id) }}">Edit</a>
+                            <form action="{{ url_for('delete', id=video.id) }}" method="post" style="display:inline;">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <section>
+            <a href="{{ url_for('add') }}">Add New Video</a>
+        </section>
+    </main>
+</body>
+</html>
