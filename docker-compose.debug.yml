@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  ytscraper:
+    image: ytscraper
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 scrape_all_playlists.py "]
+    ports:
+      - 5678:5678

@@ -1,0 +1,5 @@
+pandas
+pytube
+youtube-transcript-api
+gspread
+oauth2client
