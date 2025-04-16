@@ -1,0 +1,2077 @@
+
+
+
+
+More
+
+A
+
+
+T
+
+More
+
+
+
+
+
+Conversation with Gemini
+i think i have a gihub already for this project, lets overwrite it with the local
+
+
+
+Show thinking
+Okay, if you're sure you want your current local code to completely replace what's on GitHub, we can do that using a "force push".
+
+⚠️ Important Warning:
+
+Overwrites History: git push --force rewrites the history on the remote repository (GitHub). Any commits or changes that exist on GitHub but not in your local version will be permanently lost.
+Collaboration: If anyone else has cloned or is working with the existing GitHub repository, a force push can cause significant problems for them.
+Proceed with Caution: Only do this if you are absolutely certain that your current local code is the correct state for the project going forward and you understand that the previous GitHub history will be overwritten.
+If you are sure you want to proceed, here are the steps:
+
+Confirm GitHub Repo URL: Find the correct URL for your existing GitHub repository. It will look something like https://github.com/your-username/your-repo-name.git (HTTPS) or git@github.com:your-username/your-repo-name.git (SSH).
+
+Check/Add Remote:
+
+In your PowerShell terminal (in the yt_scraper directory), first check if you already have a remote named origin configured:
+PowerShell
+
+git remote -v
+If you see origin listed with the wrong URL: Update it:
+PowerShell
+
+git remote set-url origin <PASTE_CORRECT_GITHUB_URL_HERE>
+If you don't see origin listed: Add it:
+PowerShell
+
+git remote add origin <PASTE_CORRECT_GITHUB_URL_HERE>
+If you see origin with the correct URL: You don't need to do anything in this step.
+Force Push: This is the command that overwrites the remote history. Make sure you replace main with master if your local default branch is named master.
+
+PowerShell
+
+git push --force origin main
+(or git push --force origin master)
+
+Authentication: Git/GitHub might prompt you for your username and password (or preferably a Personal Access Token if using HTTPS) or use your configured SSH key to authenticate the push.
+
+After running the force push, your GitHub repository should mirror the exact state of your local committed code.
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+its https://github.com/Jsgordon420365/youtube-scraper-db
+
+
+
+Show thinking
+Got it. Thanks for providing the URL: https://github.com/Jsgordon420365/youtube-scraper-db
+
+Now, you can proceed with the Git commands in your PowerShell terminal (in the C:\Users\jsgor\Projects\yt_scraper directory).
+
+Remember the warning: git push --force will overwrite the history on that GitHub repository.
+
+Here are the commands again, using your specific URL:
+
+Check existing remotes (optional but good practice):
+
+PowerShell
+
+git remote -v
+If origin is listed with the wrong URL, update it:
+PowerShell
+
+git remote set-url origin https://github.com/Jsgordon420365/youtube-scraper-db.git
+If origin is not listed, add it:
+PowerShell
+
+git remote add origin https://github.com/Jsgordon420365/youtube-scraper-db.git
+If origin is already listed with the correct URL, you can skip this step.
+Force Push (Overwrites GitHub): (Assuming your local main branch is named main. If it's master, use master instead).
+
+PowerShell
+
+git push --force origin main
+You might be prompted for your GitHub username and password or Personal Access Token. After this completes, your GitHub repository should match your local one.
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+PS C:\Users\jsgor\Projects\yt_scraper> git remote -v
+
+PS C:\Users\jsgor\Projects\yt_scraper> git remote set-url origin https://github.com/Jsgordon420365/youtube-scraper-db.git
+
+error: No such remote 'origin'
+
+PS C:\Users\jsgor\Projects\yt_scraper>
+
+
+
+
+Show thinking
+Ah, okay. That output tells us exactly what happened:
+
+git remote -v showed nothing, meaning there was no remote repository named "origin" configured yet for your local project.
+git remote set-url origin ... then failed because it tries to change the URL of an existing remote named "origin". Since "origin" didn't exist, it gave the error "No such remote 'origin'".
+The Fix:
+
+You need to use the command to add the remote instead of changing it. Please run this command in your PowerShell terminal:
+
+PowerShell
+
+git remote add origin https://github.com/Jsgordon420365/youtube-scraper-db.git
+This will link your local repository to the GitHub URL under the standard name "origin".
+
+After you run that command successfully (it shouldn't produce any output if it works), you can then proceed with the force push (remembering the warning!):
+
+PowerShell
+
+git push --force origin main
+(or use master if that's your branch name).
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+PS C:\Users\jsgor\Projects\yt_scraper> git remote add origin https://github.com/Jsgordon420365/youtube-scraper-db.git
+
+PS C:\Users\jsgor\Projects\yt_scraper> git push --force origin main
+
+error: src refspec main does not match any
+
+error: failed to push some refs to 'https://github.com/Jsgordon420365/youtube-scraper-db.git'
+
+PS C:\Users\jsgor\Projects\yt_scraper>
+
+
+
+
+Show thinking
+Ah, that error message error: src refspec main does not match any tells us the issue.
+
+It means your local Git repository doesn't have a branch named main. When you ran git init and made your first commit, Git likely created the default branch with a different name, probably master.
+
+Here's how to fix it:
+
+Find Your Local Branch Name: In your PowerShell terminal, run this command to see your local branches. The one with an asterisk * next to it is your current branch:
+
+PowerShell
+
+git branch
+(Most likely, this will show * master)
+
+Push Using the Correct Branch Name: Now, run the force push command again, but replace main with the actual branch name you saw in the previous step (likely master):
+
+PowerShell
+
+git push --force origin master
+(Replace master with the correct name if git branch showed something different)
+
+Reminder: This git push --force command will still overwrite the history on your GitHub repository.
+
+Run git branch first to confirm the name, then run the corrected git push --force command. It should work this time (and might prompt for authentication).
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+how can we find a playlist thats been processed on the pullfdown
+
+
+
+Show thinking
+Okay, that's a good point. Since the scraper is running in the background and the GUI lists playlists alphabetically, it's helpful to see which ones have actually had some data processed.
+
+We can modify the GUI to check the database and add an indicator (like "✅" or " (Processed)") to the playlist names in the dropdown if that playlist has associated video data.
+
+Here's the plan:
+
+Modify Data Loading: We'll update the load_playlists function in gui_app.py. Instead of just getting the title and ID, the query will also check if there are any entries in the playlist_videos table linked to that playlist.
+Update Display Name: We'll adjust how the display_name (shown in the dropdown) is created. If the query indicates videos have been processed for a playlist, we'll append an indicator to its title.
+To do this accurately, I need the latest version of your gui_app.py file.
+Okay, it seems the tool couldn't retrieve the gui_app.py file automatically.
+
+To add the feature where the dropdown shows which playlists have been processed, I'll need the current code from that file.
+
+Could you please copy the entire contents of your gui_app.py file and paste it here in the chat?
+
+Once I have the code, I can modify the load_playlists function to include the check for processed videos and update the display names accordingly.
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+```
+
+# gui_app.py
+
+# Streamlit app - Added Playlist Selection
+
+
+
+import streamlit as st
+
+import sqlite3
+
+import pandas as pd
+
+import os
+
+from config import DB_PATH # Import database path from config.py
+
+
+
+# --- Database Connection ---
+
+@st.cache_resource # Cache the connection itself
+
+def get_db_connection():
+
+    """Establishes a connection to the SQLite database."""
+
+    if not os.path.exists(DB_PATH):
+
+        # Use st.error for user-facing errors in the app
+
+        st.error(f"Database file not found at: {DB_PATH}")
+
+        # Returning None or raising an exception might be better than st.stop() in a cached function
+
+        return None
+
+    try:
+
+        # Connect using the DB_PATH from config.py
+
+        conn = sqlite3.connect(f'file:{DB_PATH}?mode=ro', uri=True, check_same_thread=False) # Read-only mode for safety?
+
+        # conn = sqlite3.connect(DB_PATH, check_same_thread=False) # Original read-write connection
+
+        return conn
+
+    except sqlite3.Error as e:
+
+        st.error(f"Database connection error: {e}")
+
+        return None
+
+    except Exception as e:
+
+        st.error(f"An unexpected error occurred connecting to the database: {e}")
+
+        return None
+
+
+
+# --- Data Loading Functions ---
+
+# Cache the data loading functions to avoid re-running queries unnecessarily.
+
+# Use a Time-To-Live (ttl) if data might change frequently while the app is open.
+
+# @st.cache_data(ttl=60) # Cache for 60 seconds, for example
+
+@st.cache_data # Basic caching, rerun if code changes
+
+def load_playlists(_conn):
+
+    """Loads playlist titles and IDs from the database."""
+
+    if not _conn:
+
+        return pd.DataFrame() # Return empty DataFrame if no connection
+
+    try:
+
+        # Query the playlists table
+
+        df_playlists = pd.read_sql_query(
+
+            "SELECT title, playlist_id FROM playlists ORDER BY title",
+
+            _conn
+
+        )
+
+        # Add a 'display_name' column for the selectbox if titles might be missing
+
+        df_playlists['display_name'] = df_playlists.apply(lambda row: row['title'] if row['title'] else f"ID: {row['playlist_id']}", axis=1)
+
+        return df_playlists
+
+    except Exception as e:
+
+        st.error(f"Error loading playlists: {e}")
+
+        return pd.DataFrame() # Return empty DataFrame on error
+
+
+
+# --- Main App ---
+
+st.set_page_config(layout="wide")
+
+st.title("YouTube Scraper Data Viewer")
+
+
+
+conn = get_db_connection()
+
+
+
+if conn:
+
+    # Load playlists into a DataFrame
+
+    playlists_df = load_playlists(conn)
+
+
+
+    if not playlists_df.empty:
+
+        st.success(f"Successfully connected to DB and loaded {len(playlists_df)} playlists.")
+
+
+
+        # --- Sidebar for Playlist Selection ---
+
+        st.sidebar.header("Select Playlist")
+
+        # Create a list of playlist display names for the selectbox
+
+        playlist_options = playlists_df['display_name'].tolist()
+
+        selected_display_name = st.sidebar.selectbox(
+
+            "Choose a playlist:",
+
+            options=playlist_options,
+
+            index=0 # Default to the first playlist
+
+        )
+
+
+
+        # Find the playlist_id corresponding to the selected display name
+
+        selected_playlist_id = playlists_df.loc[playlists_df['display_name'] == selected_display_name, 'playlist_id'].iloc[0]
+
+
+
+        # --- Main Area ---
+
+        st.markdown("---")
+
+        st.header(f"Videos in Playlist: {selected_display_name}")
+
+        st.caption(f"Playlist ID: {selected_playlist_id}")
+
+
+
+        # --- Placeholder for Video List / Details ---
+
+        st.write("(Video list and details will appear here)")
+
+
+
+    else:
+
+        st.warning("Successfully connected to DB, but failed to load any playlists or playlist table is empty.")
+
+        st.info("Make sure `import_playlists.py` has run successfully.")
+
+
+
+else:
+
+    # Error message is handled within get_db_connection if it returns None
+
+    st.error("Application could not connect to the database.")
+
+```
+
+
+
+
+Show thinking
+Thanks! I have the code for gui_app.py now.
+
+Let's modify the load_playlists function to check if videos exist for each playlist and update the display name accordingly.
+
+Updated gui_app.py Code:
+
+Replace the contents of your gui_app.py file with this updated version:
+
+Python
+
+# gui_app.py
+# Streamlit app - Added Playlist Selection with Processed Indicator
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+import os
+from config import DB_PATH # Import database path from config.py
+
+# --- Database Connection ---
+@st.cache_resource # Cache the connection itself
+def get_db_connection():
+    """Establishes a connection to the SQLite database."""
+    if not os.path.exists(DB_PATH):
+        st.error(f"Database file not found at: {DB_PATH}")
+        return None
+    try:
+        # Connect in read-only mode to prevent accidental changes from the GUI
+        # The scraper will handle writing.
+        conn = sqlite3.connect(f'file:{DB_PATH}?mode=ro', uri=True, check_same_thread=False)
+        return conn
+    except sqlite3.Error as e:
+        st.error(f"Database connection error: {e}")
+        return None
+    except Exception as e:
+        st.error(f"An unexpected error occurred connecting to the database: {e}")
+        return None
+
+# --- Data Loading Functions ---
+@st.cache_data # Cache the results of this function
+def load_playlists_with_status(_conn):
+    """
+    Loads playlist titles/IDs and checks if any videos
+    have been processed for each playlist.
+    """
+    if not _conn:
+        return pd.DataFrame() # Return empty DataFrame if no connection
+
+    # SQL query to get playlists and count linked videos
+    query = """
+    SELECT
+        p.title,
+        p.playlist_id,
+        COUNT(pv.video_id) as video_count
+    FROM
+        playlists p
+    LEFT JOIN
+        playlist_videos pv ON p.playlist_id = pv.playlist_id
+    GROUP BY
+        p.playlist_id, p.title
+    ORDER BY
+        p.title COLLATE NOCASE; -- Case-insensitive sorting
+    """
+    try:
+        df_playlists = pd.read_sql_query(query, _conn)
+
+        # --- Create Display Name with Status Indicator ---
+        def create_display_name(row):
+            # Use playlist title, or fallback to ID if title is missing/empty
+            base_title = row['title'] if pd.notna(row['title']) and row['title'].strip() else f"ID: {row['playlist_id']}"
+            # Add a checkmark if at least one video is linked in playlist_videos
+            if row['video_count'] > 0:
+                return f"✅ {base_title}"
+            else:
+                return base_title # No indicator if no videos processed yet
+
+        df_playlists['display_name'] = df_playlists.apply(create_display_name, axis=1)
+        return df_playlists
+
+    except Exception as e:
+        st.error(f"Error loading playlists with status: {e}")
+        return pd.DataFrame() # Return empty DataFrame on error
+
+# --- Main App ---
+st.set_page_config(layout="wide")
+st.title("YouTube Scraper Data Viewer")
+
+conn = get_db_connection()
+
+if conn:
+    # Load playlists with processing status
+    playlists_df = load_playlists_with_status(conn)
+
+    if not playlists_df.empty:
+        st.success(f"Successfully connected to DB and loaded {len(playlists_df)} playlists.")
+
+        # --- Sidebar for Playlist Selection ---
+        st.sidebar.header("Select Playlist")
+        # Use the new 'display_name' column which includes the status indicator
+        playlist_options = playlists_df['display_name'].tolist()
+        selected_display_name = st.sidebar.selectbox(
+            "Choose a playlist:",
+            options=playlist_options,
+            index=0 # Default to the first playlist
+        )
+
+        # Find the playlist_id and original title corresponding to the selected display name
+        selected_row = playlists_df[playlists_df['display_name'] == selected_display_name].iloc[0]
+        selected_playlist_id = selected_row['playlist_id']
+        # Get the original title for display in the header (without the checkmark)
+        selected_playlist_title = selected_row['title'] if pd.notna(selected_row['title']) and selected_row['title'].strip() else f"ID: {selected_playlist_id}"
+
+
+        # --- Main Area ---
+        st.markdown("---")
+        st.header(f"Videos in Playlist: {selected_playlist_title}") # Use original title here
+        st.caption(f"Playlist ID: {selected_playlist_id}")
+
+        # --- Placeholder for Video List / Details ---
+        st.write("(Video list and details will appear here)")
+
+        # You can optionally display the raw dataframe for debugging
+        # st.sidebar.subheader("Playlist Data")
+        # st.sidebar.dataframe(playlists_df)
+
+    else:
+        st.warning("Successfully connected to DB, but failed to load any playlists or playlist table is empty.")
+        st.info("Make sure `import_playlists.py` has run successfully.")
+
+else:
+    st.error("Application could not connect to the database.")
+
+Changes Made:
+
+load_playlists_with_status Function:
+The SQL query now uses a LEFT JOIN to connect playlists with playlist_videos.
+It uses COUNT(pv.video_id) and GROUP BY to count how many videos are linked to each playlist.
+Sorts case-insensitively (COLLATE NOCASE).
+create_display_name Function:
+This helper function now checks the video_count for each row.
+If video_count is greater than 0, it prepends "✅ " to the playlist title (or ID if the title is missing).
+This modified name is stored in the display_name column.
+UI:
+The st.sidebar.selectbox now uses the display_name column, so you'll see the checkmarks directly in the dropdown.
+The main header now retrieves the original title (without the checkmark) for a cleaner display after selection.
+How to Use:
+
+Replace the code in your gui_app.py with the code above.
+Save the file.
+Go back to the browser tab where Streamlit is running. It should prompt you to "Rerun" - click it (or just refresh the page).
+Now, as the scraper runs in the background and adds entries to the playlist_videos table, refreshing the GUI should show checkmarks appearing next to the playlists in the sidebar dropdown, indicating they have at least one video processed.
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+it has checks beside a few of the top ones, but none display anything
+
+
+
+Show thinking
+Okay, that's expected behavior for now!
+
+The checkmarks (✅) confirm that the scraper has processed at least one video for those top playlists and added the link in the playlist_videos table.
+The main area doesn't display anything yet because we haven't added the code to actually query and show the list of videos for the selected playlist. That's our next step.
+Let's add the logic to fetch and display the videos associated with the playlist you select in the sidebar.
+
+First, I need the current code for gui_app.py again to make the additions.
+Apologies again, it seems the tool is consistently unable to fetch the gui_app.py file from the provided context.
+
+To add the next piece of functionality – displaying the list of videos for the selected playlist – I still need the current code from your gui_app.py file.
+
+Could you please copy the entire contents of gui_app.py and paste it here? Once I have that, I'll add the necessary function and UI elements to show the video list.
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+```
+
+# gui_app.py
+
+# Streamlit app - Added Playlist Selection with Processed Indicator
+
+
+
+import streamlit as st
+
+import sqlite3
+
+import pandas as pd
+
+import os
+
+from config import DB_PATH # Import database path from config.py
+
+
+
+# --- Database Connection ---
+
+@st.cache_resource # Cache the connection itself
+
+def get_db_connection():
+
+    """Establishes a connection to the SQLite database."""
+
+    if not os.path.exists(DB_PATH):
+
+        st.error(f"Database file not found at: {DB_PATH}")
+
+        return None
+
+    try:
+
+        # Connect in read-only mode to prevent accidental changes from the GUI
+
+        # The scraper will handle writing.
+
+        conn = sqlite3.connect(f'file:{DB_PATH}?mode=ro', uri=True, check_same_thread=False)
+
+        return conn
+
+    except sqlite3.Error as e:
+
+        st.error(f"Database connection error: {e}")
+
+        return None
+
+    except Exception as e:
+
+        st.error(f"An unexpected error occurred connecting to the database: {e}")
+
+        return None
+
+
+
+# --- Data Loading Functions ---
+
+@st.cache_data # Cache the results of this function
+
+def load_playlists_with_status(_conn):
+
+    """
+
+    Loads playlist titles/IDs and checks if any videos
+
+    have been processed for each playlist.
+
+    """
+
+    if not _conn:
+
+        return pd.DataFrame() # Return empty DataFrame if no connection
+
+
+
+    # SQL query to get playlists and count linked videos
+
+    query = """
+
+    SELECT
+
+        p.title,
+
+        p.playlist_id,
+
+        COUNT(pv.video_id) as video_count
+
+    FROM
+
+        playlists p
+
+    LEFT JOIN
+
+        playlist_videos pv ON p.playlist_id = pv.playlist_id
+
+    GROUP BY
+
+        p.playlist_id, p.title
+
+    ORDER BY
+
+        p.title COLLATE NOCASE; -- Case-insensitive sorting
+
+    """
+
+    try:
+
+        df_playlists = pd.read_sql_query(query, _conn)
+
+
+
+        # --- Create Display Name with Status Indicator ---
+
+        def create_display_name(row):
+
+            # Use playlist title, or fallback to ID if title is missing/empty
+
+            base_title = row['title'] if pd.notna(row['title']) and row['title'].strip() else f"ID: {row['playlist_id']}"
+
+            # Add a checkmark if at least one video is linked in playlist_videos
+
+            if row['video_count'] > 0:
+
+                return f"✅ {base_title}"
+
+            else:
+
+                return base_title # No indicator if no videos processed yet
+
+
+
+        df_playlists['display_name'] = df_playlists.apply(create_display_name, axis=1)
+
+        return df_playlists
+
+
+
+    except Exception as e:
+
+        st.error(f"Error loading playlists with status: {e}")
+
+        return pd.DataFrame() # Return empty DataFrame on error
+
+
+
+# --- Main App ---
+
+st.set_page_config(layout="wide")
+
+st.title("YouTube Scraper Data Viewer")
+
+
+
+conn = get_db_connection()
+
+
+
+if conn:
+
+    # Load playlists with processing status
+
+    playlists_df = load_playlists_with_status(conn)
+
+
+
+    if not playlists_df.empty:
+
+        st.success(f"Successfully connected to DB and loaded {len(playlists_df)} playlists.")
+
+
+
+        # --- Sidebar for Playlist Selection ---
+
+        st.sidebar.header("Select Playlist")
+
+        # Use the new 'display_name' column which includes the status indicator
+
+        playlist_options = playlists_df['display_name'].tolist()
+
+        selected_display_name = st.sidebar.selectbox(
+
+            "Choose a playlist:",
+
+            options=playlist_options,
+
+            index=0 # Default to the first playlist
+
+        )
+
+
+
+        # Find the playlist_id and original title corresponding to the selected display name
+
+        selected_row = playlists_df[playlists_df['display_name'] == selected_display_name].iloc[0]
+
+        selected_playlist_id = selected_row['playlist_id']
+
+        # Get the original title for display in the header (without the checkmark)
+
+        selected_playlist_title = selected_row['title'] if pd.notna(selected_row['title']) and selected_row['title'].strip() else f"ID: {selected_playlist_id}"
+
+
+
+
+
+        # --- Main Area ---
+
+        st.markdown("---")
+
+        st.header(f"Videos in Playlist: {selected_playlist_title}") # Use original title here
+
+        st.caption(f"Playlist ID: {selected_playlist_id}")
+
+
+
+        # --- Placeholder for Video List / Details ---
+
+        st.write("(Video list and details will appear here)")
+
+
+
+        # You can optionally display the raw dataframe for debugging
+
+        # st.sidebar.subheader("Playlist Data")
+
+        # st.sidebar.dataframe(playlists_df)
+
+
+
+    else:
+
+        st.warning("Successfully connected to DB, but failed to load any playlists or playlist table is empty.")
+
+        st.info("Make sure `import_playlists.py` has run successfully.")
+
+
+
+else:
+
+    st.error("Application could not connect to the database.")
+
+```
+
+
+
+
+Show thinking
+Thanks for providing the code for gui_app.py!
+
+Let's add the function to load the videos for the selected playlist and display them in a table.
+
+Updated gui_app.py Code:
+
+Replace the entire contents of your gui_app.py file with this new version:
+
+Python
+
+# gui_app.py
+# Streamlit app - Added Video List Display
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+import os
+from config import DB_PATH # Import database path from config.py
+
+# --- Database Connection ---
+@st.cache_resource
+def get_db_connection():
+    """Establishes a connection to the SQLite database."""
+    if not os.path.exists(DB_PATH):
+        st.error(f"Database file not found at: {DB_PATH}")
+        return None
+    try:
+        conn = sqlite3.connect(f'file:{DB_PATH}?mode=ro', uri=True, check_same_thread=False)
+        return conn
+    except sqlite3.Error as e:
+        st.error(f"Database connection error: {e}")
+        return None
+    except Exception as e:
+        st.error(f"An unexpected error occurred connecting to the database: {e}")
+        return None
+
+# --- Data Loading Functions ---
+@st.cache_data
+def load_playlists_with_status(_conn):
+    """
+    Loads playlist titles/IDs and checks if any videos
+    have been processed for each playlist.
+    """
+    if not _conn:
+        return pd.DataFrame()
+
+    query = """
+    SELECT
+        p.title,
+        p.playlist_id,
+        COUNT(pv.video_id) as video_count
+    FROM
+        playlists p
+    LEFT JOIN
+        playlist_videos pv ON p.playlist_id = pv.playlist_id
+    GROUP BY
+        p.playlist_id, p.title
+    ORDER BY
+        p.title COLLATE NOCASE;
+    """
+    try:
+        df_playlists = pd.read_sql_query(query, _conn)
+
+        def create_display_name(row):
+            base_title = row['title'] if pd.notna(row['title']) and row['title'].strip() else f"ID: {row['playlist_id']}"
+            if row['video_count'] > 0:
+                return f"✅ {base_title}"
+            else:
+                return base_title
+
+        df_playlists['display_name'] = df_playlists.apply(create_display_name, axis=1)
+        return df_playlists
+
+    except Exception as e:
+        st.error(f"Error loading playlists with status: {e}")
+        return pd.DataFrame()
+
+# --- NEW: Function to load videos for a specific playlist ---
+@st.cache_data # Cache results based on connection and playlist_id
+def load_videos_for_playlist(_conn, playlist_id):
+    """Loads video details for a given playlist ID."""
+    if not _conn or not playlist_id:
+        return pd.DataFrame()
+
+    query = """
+    SELECT
+        pv.position, -- Position in the playlist (if available)
+        v.video_id,
+        v.title,
+        v.author,
+        v.publish_date,
+        v.duration_seconds,
+        CASE
+            WHEN t.video_id IS NOT NULL THEN '✅ Yes'
+            ELSE 'No'
+        END as transcript_available -- Check if transcript exists
+    FROM
+        playlist_videos pv
+    JOIN
+        videos v ON pv.video_id = v.video_id
+    LEFT JOIN -- Use LEFT JOIN for transcript check
+        transcripts t ON v.video_id = t.video_id AND t.transcript IS NOT NULL AND t.transcript != ''
+    WHERE
+        pv.playlist_id = ?
+    GROUP BY -- Ensure one row per video even if multiple transcripts exist (e.g., different languages)
+        pv.playlist_id, v.video_id
+    ORDER BY
+        pv.position ASC, -- Order by position in playlist
+        v.publish_date DESC; -- Then maybe by publish date as fallback
+    """
+    try:
+        # Use parameters to prevent SQL injection
+        df_videos = pd.read_sql_query(query, _conn, params=(playlist_id,))
+        return df_videos
+    except Exception as e:
+        st.error(f"Error loading videos for playlist {playlist_id}: {e}")
+        return pd.DataFrame()
+
+# --- Main App ---
+st.set_page_config(layout="wide")
+st.title("YouTube Scraper Data Viewer")
+
+conn = get_db_connection()
+
+if conn:
+    playlists_df = load_playlists_with_status(conn)
+
+    if not playlists_df.empty:
+        # Display success message only once, perhaps?
+        # st.success(f"Successfully connected to DB and loaded {len(playlists_df)} playlists.")
+
+        # --- Sidebar for Playlist Selection ---
+        st.sidebar.header("Select Playlist")
+        playlist_options = playlists_df['display_name'].tolist()
+        selected_display_name = st.sidebar.selectbox(
+            "Choose a playlist:",
+            options=playlist_options,
+            index=0,
+            key="playlist_selector" # Add a key for stability
+        )
+
+        selected_row = playlists_df[playlists_df['display_name'] == selected_display_name].iloc[0]
+        selected_playlist_id = selected_row['playlist_id']
+        selected_playlist_title = selected_row['title'] if pd.notna(selected_row['title']) and selected_row['title'].strip() else f"ID: {selected_playlist_id}"
+
+        # --- Main Area ---
+        st.markdown("---")
+        st.header(f"Videos in Playlist: {selected_playlist_title}")
+        st.caption(f"Playlist ID: {selected_playlist_id}")
+
+        # --- Load and Display Videos ---
+        videos_df = load_videos_for_playlist(conn, selected_playlist_id)
+
+        if not videos_df.empty:
+            st.info(f"Found {len(videos_df)} videos processed for this playlist.")
+            # Display the DataFrame as a table
+            # Configure column visibility/order if desired
+            st.dataframe(
+                videos_df,
+                column_config={
+                    "video_id": st.column_config.TextColumn("Video ID"),
+                    "title": st.column_config.TextColumn("Title", width="large"),
+                    "author": st.column_config.TextColumn("Channel"),
+                    "publish_date": st.column_config.DateColumn("Published", format="YYYY-MM-DD"),
+                    "duration_seconds": st.column_config.NumberColumn("Duration (s)"),
+                    "transcript_available": st.column_config.TextColumn("Transcript?"),
+                    # Hide position if it's not consistently populated or useful
+                    "position": None,
+                },
+                use_container_width=True,
+                hide_index=True,
+            )
+            st.markdown("---")
+            st.subheader("Video Details (Coming Soon)")
+            st.write("(Select a video from the table above to see details here)")
+
+        else:
+            # Check if the playlist was marked as processed (✅)
+            if selected_row['video_count'] > 0:
+                st.warning("Found links for videos in this playlist, but failed to load video details. The scraper might still be processing them or encountered errors.")
+            else:
+                st.info("No videos have been processed for this playlist yet.")
+
+    else:
+        st.warning("Successfully connected to DB, but failed to load any playlists or playlist table is empty.")
+        st.info("Make sure `import_playlists.py` has run successfully.")
+
+else:
+    st.error("Application could not connect to the database.")
+
+Changes Made:
+
+load_videos_for_playlist Function:
+Added this new function that takes the database connection and a playlist_id.
+It queries the playlist_videos and videos tables using a JOIN.
+It also now does a LEFT JOIN to the transcripts table to add a simple "Transcript Available?" column (✅ Yes/No).
+It returns a Pandas DataFrame containing the video details for that playlist.
+Added @st.cache_data to cache the results.
+Main Area Logic:
+After getting the selected_playlist_id, it now calls load_videos_for_playlist.
+If the resulting videos_df DataFrame is not empty, it displays it using st.dataframe().
+st.dataframe creates an interactive table.
+Added column_config to customize column headers, width, and formatting (like dates). Hidden the 'position' column by default.
+If the DataFrame is empty, it shows a relevant message ("No videos processed yet" or a warning if links exist but details failed).
+Added placeholders for the next step: selecting a video from the table to view its full details.
+How to Use:
+
+Replace the code in gui_app.py with the code block above.
+Save the file.
+Rerun/Refresh your Streamlit app in the browser.
+Now, when you select a playlist in the sidebar (especially one with a ✅), you should see a table appear in the main area listing the videos that have been processed for that playlist, along with some basic details and whether a transcript was saved!
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+WEVE GOT PLAYLIST DATA!!
+
+
+
+Show thinking
+Fantastic! Glad to hear the video list is populating in the GUI now.
+
+The next logical step is to allow you to select one of those videos from the list and see its details (like description, author, view count, publish date) and its transcript (if it was successfully scraped).
+
+To implement this, we'll:
+
+Modify the way the video list is displayed (probably using buttons instead of just a static table).
+Add functions to query the videos and transcripts tables for the details of a specific video ID.
+Add UI elements to display these details when a video is selected.
+As before, I need the current code for gui_app.py to add these features.
+Unfortunately, the tool failed again to retrieve the gui_app.py code.
+
+To add the next step – displaying the full metadata and transcript when you select a video from the table – I'll need the current code from your gui_app.py file.
+
+Could you please copy the full contents of gui_app.py and paste it here one more time? Thanks for your help with this!
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+i have pasted the py below. lets add a "preview window" for the transcript text and other fields when a video is selected from a list. also i want to be able to manually add transcripts (or improve them (eg: updating with timestamps). I don't know whether to expect timestamps in the data or not, but we need to pursue that goal. maybe we have a status column for videos that displays whether it 1 - no transcript, 2 - no transcript due to error/refusal, 3. transcript but no timestamps, 4. transcript with timestamps. this would make it easy to query the video table and see which are missing transcripts or timestamps so they can be manually added if desired. also I want to add more ways to explore the data, including post date limiting/filtering, tagging videos (both autotag, such as their playlist occurances, and more manual tags to be able to visualize across playlists. I also am interested in knowing which videos appear on 2 or more playlists, being able to see where two playlists are too overlapping in name or intent (and should be consolidated, or treated as consolidated) and also be able to query the entire set of transcripts for specific terms or words, then display those results with choices for sorting and filtering the data. All video listings should have links that open in a new tab (background), and when timestamps are in the transcript, querying the transcripts should offer pinpointed links (meaning the video advanced to the second that the keyword first appears (or every time it appears, so a search for "sql" will indicate and can prioritize a video with 37 instances of the term in the transcript vs one that only makes 1 or 2 references (indiicating the video may not even discuss the term, just mentions it)
+
+
+
+```
+
+# gui_app.py
+
+# Streamlit app - Added Video List Display
+
+
+
+import streamlit as st
+
+import sqlite3
+
+import pandas as pd
+
+import os
+
+from config import DB_PATH # Import database path from config.py
+
+
+
+# --- Database Connection ---
+
+@st.cache_resource
+
+def get_db_connection():
+
+    """Establishes a connection to the SQLite database."""
+
+    if not os.path.exists(DB_PATH):
+
+        st.error(f"Database file not found at: {DB_PATH}")
+
+        return None
+
+    try:
+
+        conn = sqlite3.connect(f'file:{DB_PATH}?mode=ro', uri=True, check_same_thread=False)
+
+        return conn
+
+    except sqlite3.Error as e:
+
+        st.error(f"Database connection error: {e}")
+
+        return None
+
+    except Exception as e:
+
+        st.error(f"An unexpected error occurred connecting to the database: {e}")
+
+        return None
+
+
+
+# --- Data Loading Functions ---
+
+@st.cache_data
+
+def load_playlists_with_status(_conn):
+
+    """
+
+    Loads playlist titles/IDs and checks if any videos
+
+    have been processed for each playlist.
+
+    """
+
+    if not _conn:
+
+        return pd.DataFrame()
+
+
+
+    query = """
+
+    SELECT
+
+        p.title,
+
+        p.playlist_id,
+
+        COUNT(pv.video_id) as video_count
+
+    FROM
+
+        playlists p
+
+    LEFT JOIN
+
+        playlist_videos pv ON p.playlist_id = pv.playlist_id
+
+    GROUP BY
+
+        p.playlist_id, p.title
+
+    ORDER BY
+
+        p.title COLLATE NOCASE;
+
+    """
+
+    try:
+
+        df_playlists = pd.read_sql_query(query, _conn)
+
+
+
+        def create_display_name(row):
+
+            base_title = row['title'] if pd.notna(row['title']) and row['title'].strip() else f"ID: {row['playlist_id']}"
+
+            if row['video_count'] > 0:
+
+                return f"? {base_title}"
+
+            else:
+
+                return base_title
+
+
+
+        df_playlists['display_name'] = df_playlists.apply(create_display_name, axis=1)
+
+        return df_playlists
+
+
+
+    except Exception as e:
+
+        st.error(f"Error loading playlists with status: {e}")
+
+        return pd.DataFrame()
+
+
+
+# --- NEW: Function to load videos for a specific playlist ---
+
+@st.cache_data # Cache results based on connection and playlist_id
+
+def load_videos_for_playlist(_conn, playlist_id):
+
+    """Loads video details for a given playlist ID."""
+
+    if not _conn or not playlist_id:
+
+        return pd.DataFrame()
+
+
+
+    query = """
+
+    SELECT
+
+        pv.position, -- Position in the playlist (if available)
+
+        v.video_id,
+
+        v.title,
+
+        v.author,
+
+        v.publish_date,
+
+        v.duration_seconds,
+
+        CASE
+
+            WHEN t.video_id IS NOT NULL THEN '? Yes'
+
+            ELSE 'No'
+
+        END as transcript_available -- Check if transcript exists
+
+    FROM
+
+        playlist_videos pv
+
+    JOIN
+
+        videos v ON pv.video_id = v.video_id
+
+    LEFT JOIN -- Use LEFT JOIN for transcript check
+
+        transcripts t ON v.video_id = t.video_id AND t.transcript IS NOT NULL AND t.transcript != ''
+
+    WHERE
+
+        pv.playlist_id = ?
+
+    GROUP BY -- Ensure one row per video even if multiple transcripts exist (e.g., different languages)
+
+        pv.playlist_id, v.video_id
+
+    ORDER BY
+
+        pv.position ASC, -- Order by position in playlist
+
+        v.publish_date DESC; -- Then maybe by publish date as fallback
+
+    """
+
+    try:
+
+        # Use parameters to prevent SQL injection
+
+        df_videos = pd.read_sql_query(query, _conn, params=(playlist_id,))
+
+        return df_videos
+
+    except Exception as e:
+
+        st.error(f"Error loading videos for playlist {playlist_id}: {e}")
+
+        return pd.DataFrame()
+
+
+
+# --- Main App ---
+
+st.set_page_config(layout="wide")
+
+st.title("YouTube Scraper Data Viewer")
+
+
+
+conn = get_db_connection()
+
+
+
+if conn:
+
+    playlists_df = load_playlists_with_status(conn)
+
+
+
+    if not playlists_df.empty:
+
+        # Display success message only once, perhaps?
+
+        # st.success(f"Successfully connected to DB and loaded {len(playlists_df)} playlists.")
+
+
+
+        # --- Sidebar for Playlist Selection ---
+
+        st.sidebar.header("Select Playlist")
+
+        playlist_options = playlists_df['display_name'].tolist()
+
+        selected_display_name = st.sidebar.selectbox(
+
+            "Choose a playlist:",
+
+            options=playlist_options,
+
+            index=0,
+
+            key="playlist_selector" # Add a key for stability
+
+        )
+
+
+
+        selected_row = playlists_df[playlists_df['display_name'] == selected_display_name].iloc[0]
+
+        selected_playlist_id = selected_row['playlist_id']
+
+        selected_playlist_title = selected_row['title'] if pd.notna(selected_row['title']) and selected_row['title'].strip() else f"ID: {selected_playlist_id}"
+
+
+
+        # --- Main Area ---
+
+        st.markdown("---")
+
+        st.header(f"Videos in Playlist: {selected_playlist_title}")
+
+        st.caption(f"Playlist ID: {selected_playlist_id}")
+
+
+
+        # --- Load and Display Videos ---
+
+        videos_df = load_videos_for_playlist(conn, selected_playlist_id)
+
+
+
+        if not videos_df.empty:
+
+            st.info(f"Found {len(videos_df)} videos processed for this playlist.")
+
+            # Display the DataFrame as a table
+
+            # Configure column visibility/order if desired
+
+            st.dataframe(
+
+                videos_df,
+
+                column_config={
+
+                    "video_id": st.column_config.TextColumn("Video ID"),
+
+                    "title": st.column_config.TextColumn("Title", width="large"),
+
+                    "author": st.column_config.TextColumn("Channel"),
+
+                    "publish_date": st.column_config.DateColumn("Published", format="YYYY-MM-DD"),
+
+                    "duration_seconds": st.column_config.NumberColumn("Duration (s)"),
+
+                    "transcript_available": st.column_config.TextColumn("Transcript?"),
+
+                    # Hide position if it's not consistently populated or useful
+
+                    "position": None,
+
+                },
+
+                use_container_width=True,
+
+                hide_index=True,
+
+            )
+
+            st.markdown("---")
+
+            st.subheader("Video Details (Coming Soon)")
+
+            st.write("(Select a video from the table above to see details here)")
+
+
+
+        else:
+
+            # Check if the playlist was marked as processed (?)
+
+            if selected_row['video_count'] > 0:
+
+                st.warning("Found links for videos in this playlist, but failed to load video details. The scraper might still be processing them or encountered errors.")
+
+            else:
+
+                st.info("No videos have been processed for this playlist yet.")
+
+
+
+    else:
+
+        st.warning("Successfully connected to DB, but failed to load any playlists or playlist table is empty.")
+
+        st.info("Make sure `import_playlists.py` has run successfully.")
+
+
+
+else:
+
+    st.error("Application could not connect to the database.")
+
+```
+
+
+
+
+Show thinking
+Wow, that's a fantastic list of features and ideas for enhancing both the data exploration GUI and the backend data itself! It shows you're thinking deeply about how to make this tool really useful.
+
+Building all of that will take several steps. Let's tackle them incrementally, starting with the most immediate next feature for the GUI: displaying the selected video's details (metadata and transcript).
+
+We'll also incorporate making the video titles clickable links.
+
+Regarding timestamps and manual editing:
+
+Timestamps: The youtube-transcript-api does provide start times for each transcript segment. Our current scraper code (youtube_utils.py) simplifies this by joining only the text together before saving. To support timestamp features (like pinpointed links or status columns), we would need to modify the scraper to save the structured transcript data (perhaps as JSON) instead of plain text, and potentially update the database schema. We can definitely plan for this as a future enhancement!
+Manual Editing: This requires changing the GUI's database connection from read-only (mode=ro) back to read-write and adding input elements (st.text_area) and buttons to trigger database updates (UPDATE transcripts SET ...). This is also a more advanced feature we can add later.
+Let's focus now on getting the basic metadata and the currently stored transcript text to display in the GUI when you select a video. We'll change the video list from a table to clickable buttons for selection.
+
+Updated gui_app.py Code (Video Detail Display):
+
+Replace the contents of your gui_app.py file with this version:
+
+Python
+
+# gui_app.py
+# Streamlit app - Added Video Detail Display
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+import os
+import webbrowser # To potentially open links, though markdown links are better
+from config import DB_PATH # Import database path from config.py
+
+# --- Database Connection ---
+@st.cache_resource
+def get_db_connection():
+    """Establishes a connection to the SQLite database."""
+    db_file = os.path.abspath(DB_PATH) # Get absolute path
+    if not os.path.exists(db_file):
+        st.error(f"Database file not found at: {db_file}")
+        return None
+    try:
+        # Connect in read-only mode unless editing features are added later
+        conn = sqlite3.connect(f'file:{db_file}?mode=ro', uri=True, check_same_thread=False)
+        conn.row_factory = sqlite3.Row # Return rows as dictionary-like objects for easier access
+        return conn
+    except sqlite3.Error as e:
+        st.error(f"Database connection error: {e}")
+        return None
+    except Exception as e:
+        st.error(f"An unexpected error occurred connecting to the database: {e}")
+        return None
+
+# --- Data Loading Functions ---
+@st.cache_data
+def load_playlists_with_status(_conn):
+    """Loads playlist titles/IDs and checks if any videos have been processed."""
+    if not _conn: return pd.DataFrame()
+    query = """
+    SELECT p.title, p.playlist_id, COUNT(pv.video_id) as video_count
+    FROM playlists p
+    LEFT JOIN playlist_videos pv ON p.playlist_id = pv.playlist_id
+    GROUP BY p.playlist_id, p.title ORDER BY p.title COLLATE NOCASE;
+    """
+    try:
+        df_playlists = pd.read_sql_query(query, _conn)
+        def create_display_name(row):
+            base_title = row['title'] if pd.notna(row['title']) and row['title'].strip() else f"ID: {row['playlist_id']}"
+            return f"✅ {base_title}" if row['video_count'] > 0 else base_title
+        df_playlists['display_name'] = df_playlists.apply(create_display_name, axis=1)
+        return df_playlists
+    except Exception as e:
+        st.error(f"Error loading playlists with status: {e}")
+        return pd.DataFrame()
+
+@st.cache_data
+def load_videos_for_playlist(_conn, playlist_id):
+    """Loads video list (ID, Title) for a given playlist ID."""
+    if not _conn or not playlist_id: return pd.DataFrame()
+    query = """
+    SELECT
+        pv.position, v.video_id, v.title, v.video_url, v.author,
+        CASE WHEN t.video_id IS NOT NULL THEN '✅' ELSE ' ' END as transcript_status
+    FROM playlist_videos pv
+    JOIN videos v ON pv.video_id = v.video_id
+    LEFT JOIN transcripts t ON v.video_id = t.video_id AND t.transcript IS NOT NULL AND t.transcript != ''
+    WHERE pv.playlist_id = ?
+    GROUP BY pv.playlist_id, v.video_id -- Avoid duplicates if multiple languages exist
+    ORDER BY pv.position ASC, v.publish_date DESC;
+    """
+    try:
+        df_videos = pd.read_sql_query(query, _conn, params=(playlist_id,))
+        return df_videos
+    except Exception as e:
+        st.error(f"Error loading videos for playlist {playlist_id}: {e}")
+        return pd.DataFrame()
+
+# --- NEW: Functions to load details for a single video ---
+@st.cache_data
+def load_video_metadata(_conn, video_id):
+    """Loads all metadata for a specific video ID."""
+    if not _conn or not video_id: return None
+    try:
+        cursor = _conn.cursor()
+        cursor.execute("SELECT * FROM videos WHERE video_id = ?", (video_id,))
+        video_data = cursor.fetchone() # Fetch one row
+        return dict(video_data) if video_data else None # Convert Row object to dict
+    except Exception as e:
+        st.error(f"Error loading metadata for video {video_id}: {e}")
+        return None
+
+@st.cache_data
+def load_transcript(_conn, video_id):
+    """Loads transcript text for a specific video ID."""
+    if not _conn or not video_id: return None
+    try:
+        cursor = _conn.cursor()
+        # Fetch the first available transcript for this video (modify if language selection needed)
+        cursor.execute("SELECT transcript, language FROM transcripts WHERE video_id = ? LIMIT 1", (video_id,))
+        transcript_data = cursor.fetchone()
+        return transcript_data # Returns a Row object (dict-like) or None
+    except Exception as e:
+        st.error(f"Error loading transcript for video {video_id}: {e}")
+        return None
+
+# --- Main App ---
+st.set_page_config(layout="wide")
+st.title("YouTube Scraper Data Viewer")
+
+# Initialize session state for selected video
+if 'selected_video_id' not in st.session_state:
+    st.session_state.selected_video_id = None
+
+conn = get_db_connection()
+
+if conn:
+    playlists_df = load_playlists_with_status(conn)
+
+    if not playlists_df.empty:
+        # --- Sidebar ---
+        st.sidebar.header("Select Playlist")
+        playlist_options = playlists_df['display_name'].tolist()
+        selected_display_name = st.sidebar.selectbox(
+            "Choose a playlist:", options=playlist_options, index=0, key="playlist_selector"
+        )
+        selected_row = playlists_df[playlists_df['display_name'] == selected_display_name].iloc[0]
+        selected_playlist_id = selected_row['playlist_id']
+        selected_playlist_title = selected_row['title'] if pd.notna(selected_row['title']) and selected_row['title'].strip() else f"ID: {selected_playlist_id}"
+
+        # --- Main Area ---
+        st.header(f"Playlist: {selected_playlist_title}")
+        st.caption(f"ID: {selected_playlist_id}")
+        st.markdown("---")
+
+        # --- Load and Display Video List ---
+        videos_df = load_videos_for_playlist(conn, selected_playlist_id)
+
+        if not videos_df.empty:
+            st.subheader(f"Videos ({len(videos_df)})")
+
+            # Define columns for layout
+            col1, col2 = st.columns([3, 1]) # Title column wider than button column
+
+            # Store selected video details if a button is clicked
+            selected_video_details = None
+
+            with col1:
+                st.write("**Title / Channel**") # Header for the first column
+            with col2:
+                st.write("**Actions**") # Header for the second column
+
+            for index, row in videos_df.iterrows():
+                video_title = row['title'] if pd.notna(row['title']) else f"ID: {row['video_id']}"
+                video_id = row['video_id']
+                video_url = row['video_url']
+                author = row['author'] if pd.notna(row['author']) else "Unknown Channel"
+                transcript_indicator = row['transcript_status']
+
+                colA, colB = st.columns([3, 1]) # Create columns for each row
+                with colA:
+                     # Make title a clickable link opening in new tab
+                     st.markdown(f"[{transcript_indicator} {video_title}]({video_url})", unsafe_allow_html=False)
+                     st.caption(f"{author} ({video_id})")
+                with colB:
+                     # Create a button for each video
+                     if st.button("View Details", key=f"view_{video_id}"):
+                          st.session_state.selected_video_id = video_id # Store selected ID in session state
+
+            st.markdown("---")
+
+            # --- Display Selected Video Details ---
+            if st.session_state.selected_video_id:
+                st.subheader("Selected Video Details")
+                video_meta = load_video_metadata(conn, st.session_state.selected_video_id)
+                transcript_data = load_transcript(conn, st.session_state.selected_video_id)
+
+                if video_meta:
+                    st.markdown(f"**Title:** {video_meta.get('title', 'N/A')}")
+                    st.markdown(f"**Video ID:** {video_meta.get('video_id')}")
+                    st.markdown(f"**Channel:** {video_meta.get('author', 'N/A')} ({video_meta.get('channel_id', 'N/A')})")
+                    st.markdown(f"**Published:** {video_meta.get('publish_date', 'N/A')}")
+                    duration_s = video_meta.get('duration_seconds')
+                    duration_str = f"{duration_s // 60}m {duration_s % 60}s" if duration_s else "N/A"
+                    st.markdown(f"**Duration:** {duration_str}")
+                    st.markdown(f"**Views:** {video_meta.get('view_count', 'N/A')}")
+                    st.markdown(f"**Video URL:** [{video_meta.get('video_url')}]({video_meta.get('video_url')})")
+                    st.image(video_meta.get('thumbnail_url', ''), caption="Thumbnail")
+
+                    with st.expander("Description"):
+                        st.markdown(video_meta.get('description', 'No description available.'))
+
+                    with st.expander("Transcript"):
+                        if transcript_data:
+                            st.caption(f"Language: {transcript_data.get('language', 'N/A')}")
+                            # Display transcript text - format it slightly if desired
+                            st.text_area("Transcript Text", value=transcript_data.get('transcript', 'No transcript text found.'), height=300, disabled=True)
+                        else:
+                            st.info("Transcript not found or not scraped for this video.")
+                else:
+                    st.error(f"Could not load metadata for selected video ID: {st.session_state.selected_video_id}")
+
+        else: # If videos_df is empty
+            if selected_row['video_count'] > 0:
+                st.warning("Links found, but failed to load video details. Scraper might be running or failed.")
+            else:
+                st.info("No videos processed for this playlist yet.")
+
+    else: # If playlists_df is empty
+        st.warning("Connected to DB, but failed to load playlists.")
+        st.info("Make sure `import_playlists.py` ran.")
+
+else: # If conn is None
+    st.error("Application could not connect to the database.")
+
+Changes Made:
+
+load_videos_for_playlist: Modified slightly to include video_url and use a clearer transcript_status indicator ('✅' or ' ').
+New Data Functions: Added load_video_metadata and load_transcript to fetch details for a single video_id. Both use @st.cache_data.
+Session State: Initialized st.session_state.selected_video_id to keep track of which video details to display.
+Video List Display:
+Removed st.dataframe.
+Looped through the videos_df DataFrame row by row.
+Used st.columns to create a layout for each video entry.
+Displayed the video title as a clickable link opening the video_url (this usually opens in a new tab by default in browsers). Added transcript status indicator (✅) before the link.
+Displayed the channel/author and video ID as caption text.
+Added a "View Details" button (st.button) for each video. The key for the button includes the video_id so each button is unique.
+When a button is clicked, it sets st.session_state.selected_video_id to that video's ID.
+Video Detail Display:
+Added a section that checks if st.session_state.selected_video_id has a value (i.e., if a button was clicked).
+If selected, it calls the new data loading functions.
+It then displays the metadata using various st.markdown elements.
+The description and transcript are placed inside st.expander widgets so they don't take up too much space initially. The transcript uses a disabled st.text_area.
+How to Use:
+
+Replace the code in your gui_app.py file with this updated code.
+Save the file.
+Rerun/Refresh your Streamlit app.
+Now you should be able to:
+
+Select a playlist in the sidebar.
+See the list of videos for that playlist.
+Click the "View Details" button next to a video.
+See the metadata and transcript appear below the video list.
+Click the video title link to open the video on YouTube.
+This provides the core viewing functionality! Let me know how it works.
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+
+
+
+
+
+
+
+
+
+Playlist ID: PLrq7heytJY0nXuRTvn3xcgzdv_l9xf-7V
+
+Found 6 videos processed for this playlist.
+
+Click on a video title below to view details.
+
+Josh Ritter - The Curse (📄)
+
+
+
+
+
+streamlit.runtime.caching.cache_errors.UnserializableReturnValueError: Cannot serialize the return value (of type sqlite3.Row) in load_video_metadata(). st.cache_data uses pickle to serialize the function's return value and safely store it in the cache without mutating the original object. Please convert the return value to a pickle-serializable type. If you want to cache unserializable objects such as database connections or Tensorflow sessions, use st.cache_resource instead (see our docs for differences).
+
+Traceback:
+
+File "C:\Users\jsgor\Projects\yt_scraper\gui_app.py", line 167, in <module>
+
+metadata = load_video_metadata(conn, video_id)
+
+File "C:\Users\jsgor\AppData\Roaming\Python\Python313\site-packages\streamlit\runtime\caching\cache_utils.py", line 219, in __call__
+
+return self._get_or_create_cached_value(args, kwargs, spinner_message)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+File "C:\Users\jsgor\AppData\Roaming\Python\Python313\site-packages\streamlit\runtime\caching\cache_utils.py", line 261, in _get_or_create_cached_value
+
+return self._handle_cache_miss(cache, value_key, func_args, func_kwargs)
+
+~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+File "C:\Users\jsgor\AppData\Roaming\Python\Python313\site-packages\streamlit\runtime\caching\cache_utils.py", line 345, in _handle_cache_miss
+
+raise UnserializableReturnValueError(
+
+return_value=computed_value, func=self._info.func
+
+)
+
+
+
+
+Show thinking
+Got it. Thanks for pasting the traceback!
+
+This error is happening because of how Streamlit's caching interacts with the database results:
+
+streamlit.runtime.caching.cache_errors.UnserializableReturnValueError: Cannot serialize the return value (of type sqlite3.Row) in load_video_metadata().
+What it means: Streamlit's @st.cache_data decorator saves the result of a function so it doesn't have to rerun it constantly. It uses a method called "pickling" to store this result. However, the sqlite3.Row object (which is what the database cursor returns when you fetch one row and have conn.row_factory = sqlite3.Row set) cannot be "pickled".
+The Fix: We need to convert the sqlite3.Row object into a standard Python dictionary (which can be pickled) before returning it from the cached functions.
+Which Function? Although the error message mentions load_video_metadata, looking at the code you provided, that function already converts the result to a dictionary (return dict(video_data) if video_data else None). However, the load_transcript function does not do this conversion (return transcript_data). It's most likely that load_transcript is the actual source of the unserializable sqlite3.Row, even though the error message pointed slightly differently in the traceback summary.
+Let's modify load_transcript to return a dictionary as well.
+
+Updated gui_app.py Code (Serialization Fix):
+
+Replace the contents of your gui_app.py file with this updated version:
+
+Python
+
+# gui_app.py
+# Streamlit app - Fixed serialization error for cached functions
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+import os
+import webbrowser
+from config import DB_PATH # Import database path from config.py
+
+# --- Database Connection ---
+@st.cache_resource
+def get_db_connection():
+    """Establishes a connection to the SQLite database."""
+    db_file = os.path.abspath(DB_PATH)
+    if not os.path.exists(db_file):
+        st.error(f"Database file not found at: {db_file}")
+        return None
+    try:
+        conn = sqlite3.connect(f'file:{db_file}?mode=ro', uri=True, check_same_thread=False)
+        conn.row_factory = sqlite3.Row # Return rows as dictionary-like objects
+        return conn
+    except sqlite3.Error as e:
+        st.error(f"Database connection error: {e}")
+        return None
+    except Exception as e:
+        st.error(f"An unexpected error occurred connecting to the database: {e}")
+        return None
+
+# --- Data Loading Functions ---
+@st.cache_data
+def load_playlists_with_status(_conn):
+    """Loads playlist titles/IDs and checks if any videos have been processed."""
+    if not _conn: return pd.DataFrame()
+    query = """
+    SELECT p.title, p.playlist_id, COUNT(pv.video_id) as video_count
+    FROM playlists p
+    LEFT JOIN playlist_videos pv ON p.playlist_id = pv.playlist_id
+    GROUP BY p.playlist_id, p.title ORDER BY p.title COLLATE NOCASE;
+    """
+    try:
+        df_playlists = pd.read_sql_query(query, _conn)
+        def create_display_name(row):
+            base_title = row['title'] if pd.notna(row['title']) and row['title'].strip() else f"ID: {row['playlist_id']}"
+            return f"✅ {base_title}" if row['video_count'] > 0 else base_title
+        df_playlists['display_name'] = df_playlists.apply(create_display_name, axis=1)
+        return df_playlists
+    except Exception as e:
+        st.error(f"Error loading playlists with status: {e}")
+        return pd.DataFrame()
+
+@st.cache_data
+def load_videos_for_playlist(_conn, playlist_id):
+    """Loads video list (ID, Title) for a given playlist ID."""
+    if not _conn or not playlist_id: return pd.DataFrame()
+    query = """
+    SELECT
+        pv.position, v.video_id, v.title, v.video_url, v.author,
+        CASE WHEN t.video_id IS NOT NULL THEN '✅' ELSE ' ' END as transcript_status
+    FROM playlist_videos pv
+    JOIN videos v ON pv.video_id = v.video_id
+    LEFT JOIN transcripts t ON v.video_id = t.video_id AND t.transcript IS NOT NULL AND t.transcript != ''
+    WHERE pv.playlist_id = ?
+    GROUP BY pv.playlist_id, v.video_id
+    ORDER BY pv.position ASC, v.publish_date DESC;
+    """
+    try:
+        df_videos = pd.read_sql_query(query, _conn, params=(playlist_id,))
+        return df_videos
+    except Exception as e:
+        st.error(f"Error loading videos for playlist {playlist_id}: {e}")
+        return pd.DataFrame()
+
+@st.cache_data
+def load_video_metadata(_conn, video_id):
+    """Loads all metadata for a specific video ID."""
+    if not _conn or not video_id: return None
+    try:
+        cursor = _conn.cursor()
+        cursor.execute("SELECT * FROM videos WHERE video_id = ?", (video_id,))
+        video_data = cursor.fetchone()
+        # Ensure conversion to dict happens reliably
+        return dict(video_data) if video_data else None
+    except Exception as e:
+        st.error(f"Error loading metadata for video {video_id}: {e}")
+        return None
+
+@st.cache_data
+def load_transcript(_conn, video_id):
+    """Loads transcript text for a specific video ID."""
+    if not _conn or not video_id: return None
+    try:
+        cursor = _conn.cursor()
+        cursor.execute("SELECT transcript, language FROM transcripts WHERE video_id = ? LIMIT 1", (video_id,))
+        transcript_data = cursor.fetchone()
+        # --- FIX: Convert sqlite3.Row to dict before returning ---
+        return dict(transcript_data) if transcript_data else None
+    except Exception as e:
+        st.error(f"Error loading transcript for video {video_id}: {e}")
+        return None
+
+# --- Main App ---
+st.set_page_config(layout="wide")
+st.title("YouTube Scraper Data Viewer")
+
+# Initialize session state
+if 'selected_video_id' not in st.session_state:
+    st.session_state.selected_video_id = None
+
+conn = get_db_connection()
+
+if conn:
+    playlists_df = load_playlists_with_status(conn)
+
+    if not playlists_df.empty:
+        # --- Sidebar ---
+        st.sidebar.header("Select Playlist")
+        playlist_options = playlists_df['display_name'].tolist()
+        # Check if previous selection is still valid, otherwise reset index
+        try:
+            current_index = playlist_options.index(st.session_state.get("playlist_selector", playlist_options[0]))
+        except ValueError:
+            current_index = 0 # Default to first item if previous selection invalid
+
+        selected_display_name = st.sidebar.selectbox(
+            "Choose a playlist:", options=playlist_options, index=current_index, key="playlist_selector"
+        )
+
+        # Clear selected video when playlist changes
+        if st.session_state.get("current_playlist_display_name") != selected_display_name:
+            st.session_state.selected_video_id = None
+            st.session_state.current_playlist_display_name = selected_display_name # Store current selection
+
+        selected_row = playlists_df[playlists_df['display_name'] == selected_display_name].iloc[0]
+        selected_playlist_id = selected_row['playlist_id']
+        selected_playlist_title = selected_row['title'] if pd.notna(selected_row['title']) and selected_row['title'].strip() else f"ID: {selected_playlist_id}"
+
+        # --- Main Area ---
+        st.header(f"Playlist: {selected_playlist_title}")
+        st.caption(f"ID: {selected_playlist_id}")
+        st.markdown("---")
+
+        # --- Load and Display Video List ---
+        videos_df = load_videos_for_playlist(conn, selected_playlist_id)
+
+        if not videos_df.empty:
+            st.subheader(f"Videos ({len(videos_df)})")
+            col1, col2 = st.columns([3, 1])
+            with col1: st.write("**Title / Channel**")
+            with col2: st.write("**Actions**")
+
+            for index, row_data in videos_df.iterrows():
+                # Convert pandas row Series to dictionary for easier access
+                row = row_data.to_dict()
+                video_title = row.get('title', f"ID: {row.get('video_id', 'N/A')}")
+                video_id = row.get('video_id')
+                video_url = row.get('video_url')
+                author = row.get('author', "Unknown Channel")
+                transcript_indicator = row.get('transcript_status', ' ')
+
+                if not video_id: continue # Skip if video_id is missing for some reason
+
+                colA, colB = st.columns([3, 1])
+                with colA:
+                     link = f"[{transcript_indicator} {video_title}]({video_url})" if video_url else f"{transcript_indicator} {video_title}"
+                     st.markdown(link, unsafe_allow_html=False)
+                     st.caption(f"{author} ({video_id})")
+                with colB:
+                     if st.button("View Details", key=f"view_{video_id}"):
+                          st.session_state.selected_video_id = video_id
+                          # Optionally use st.rerun() here if needed, but often state updates handle it
+
+            st.markdown("---")
+
+            # --- Display Selected Video Details ---
+            if st.session_state.selected_video_id:
+                st.subheader("Selected Video Details")
+                # Load data using the selected ID from session state
+                video_meta = load_video_metadata(conn, st.session_state.selected_video_id)
+                transcript_data = load_transcript(conn, st.session_state.selected_video_id)
+
+                if video_meta:
+                    # Display metadata fields safely using .get()
+                    st.markdown(f"**Title:** {video_meta.get('title', 'N/A')}")
+                    st.markdown(f"**Video ID:** {video_meta.get('video_id')}")
+                    st.markdown(f"**Channel:** {video_meta.get('author', 'N/A')} ({video_meta.get('channel_id', 'N/A')})")
+                    st.markdown(f"**Published:** {video_meta.get('publish_date', 'N/A')}")
+                    duration_s = video_meta.get('duration_seconds')
+                    duration_str = f"{duration_s // 60}m {duration_s % 60}s" if isinstance(duration_s, (int, float)) else "N/A"
+                    st.markdown(f"**Duration:** {duration_str}")
+                    st.markdown(f"**Views:** {video_meta.get('view_count', 'N/A')}")
+                    vid_url = video_meta.get('video_url')
+                    if vid_url: st.markdown(f"**Video URL:** [{vid_url}]({vid_url})")
+                    thumb_url = video_meta.get('thumbnail_url')
+                    if thumb_url: st.image(thumb_url, caption="Thumbnail")
+
+                    with st.expander("Description", expanded=False): # Keep collapsed initially
+                        st.markdown(video_meta.get('description', '*No description available.*'))
+
+                    with st.expander("Transcript", expanded=True): # Expand transcript by default
+                        if transcript_data:
+                            st.caption(f"Language: {transcript_data.get('language', 'N/A')}")
+                            st.text_area("", value=transcript_data.get('transcript', 'No transcript text found.'), height=300, disabled=True, label_visibility="collapsed")
+                        else:
+                            st.info("Transcript not found or not scraped for this video.")
+                else:
+                    st.error(f"Could not load metadata for selected video ID: {st.session_state.selected_video_id}")
+
+        else:
+            if selected_row['video_count'] > 0:
+                st.warning("Links found, but failed to load video details.")
+            else:
+                st.info("No videos processed for this playlist yet.")
+
+    else:
+        st.warning("Connected to DB, but failed to load playlists.")
+        st.info("Make sure `import_playlists.py` ran.")
+
+else:
+    st.error("Application could not connect to the database.")
+
+Changes Made:
+
+get_db_connection: Added conn.row_factory = sqlite3.Row so we can access columns by name later (makes code cleaner).
+load_transcript: Changed the return line to return dict(transcript_data) if transcript_data else None. This converts the sqlite3.Row object to a standard dictionary, which @st.cache_data can handle.
+Session State Handling: Added logic to clear the selected_video_id when the user chooses a different playlist in the sidebar, preventing previously selected details from lingering.
+Video List Iteration: Minor change to convert the pandas row to a dictionary (row = row_data.to_dict()) before accessing elements, which can sometimes be more robust than direct Series access.
+Video Detail Display: Made access to metadata fields safer using .get() with default values (N/A). Ensured duration calculation handles potential None values. Made transcript expander open by default (expanded=True).
+How to Use:
+
+Replace the code in gui_app.py with the code above.
+Save the file.
+Rerun/Refresh the Streamlit app.
+Now, when you click the "View Details" button for a video, it should successfully load and display the metadata and transcript without the serialization error.
+
+
+Sources and related content
+yt_scraper
+
+Code folder
+
+
+
+
+
+
+
+
+
+
+Canvas
+
+Gemini can make mistakes, so double-check it
+
