@@ -1,4 +1,5 @@
-requests
-beautifulsoup4
-sqlite3
-flask
+pandas
+pytube
+youtube-transcript-api
+gspread
+oauth2client

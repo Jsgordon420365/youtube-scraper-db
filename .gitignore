@@ -1,0 +1,24 @@
+# Database file
+youtube.db
+youtube.db-journal # Include journal files if they appear
+
+# Log files
+*.log
+*.json # If you don't want to track JSON logs like scrape_all_playlists.json
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE / Editor specific files (optional examples)
+.vscode/
+.idea/
+
+# Service account keys (if you accidentally saved one here)
+*.json # Be careful with this if playlists.json SHOULD be tracked
+
+# OS specific files (optional examples)
+.DS_Store
+Thumbs.db
+.qodo
