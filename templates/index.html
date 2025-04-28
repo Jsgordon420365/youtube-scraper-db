@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Scraper Viewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>YouTube Data Viewer</h1>
+
+    <div class="container">
+        <div id="playlist-pane" class="pane">
+            <h2>Playlists</h2>
+            <ul>
+                {% for playlist in playlists %}
+                    <li>{{ playlist.title }} ({{ playlist.playlist_id }})</li>
+                {% else %}
+                    <li>No playlists found in database. Run import_playlists.py?</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div id="video-pane" class="pane">
+            <h2>Videos</h2>
+            <p>Select a playlist to see videos.</p>
+            <ul id="video-list">
+                <!-- Video list will be populated dynamically -->
+            </ul>
+        </div>
+
+        <div id="details-pane" class="pane">
+            <h2>Details / Transcript</h2>
+            <p>Select a video to see details and transcript.</p>
+            <div id="video-details">
+                <!-- Video details here -->
+            </div>
+            <div id="transcript-view">
+                <h3>Transcript</h3>
+                <pre id="transcript-content">
+                    <!-- Transcript text here -->
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- We'll add JavaScript later for interactions -->
+    <!-- <script src="{{ url_for('static', filename='script.js') }}"></script> -->
+</body>
+</html>

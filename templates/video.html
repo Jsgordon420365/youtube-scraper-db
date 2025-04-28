@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Video Details</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1 id="video-title">Video</h1>
+  <div id="video-details"></div>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoId = urlParams.get("video_id");
+    fetch(`/api/videos/${videoId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          document.getElementById("video-details").innerText = data.error;
+          return;
+        }
+        document.getElementById("video-title").textContent = data.title;
+        const details = document.getElementById("video-details");
+        const info = document.createElement("div");
+        info.innerHTML = `
+          <p><strong>Published:</strong> ${data.publish_date}</p>
+          <p><strong>Duration:</strong> ${data.duration_seconds} seconds</p>
+          <p><strong>Views:</strong> ${data.view_count}</p>
+          <p><strong>Author:</strong> ${data.author}</p>
+          <p><a href="${data.video_url}" target="_blank">Watch on YouTube</a></p>
+          <h2>Transcript (${data.transcript_language || ''})</h2>
+          <pre>${data.transcript || 'No transcript available.'}</pre>
+        `;
+        details.appendChild(info);
+      });
+  </script>
+</body>
+</html>

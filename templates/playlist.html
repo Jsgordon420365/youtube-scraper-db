@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Playlist Videos</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1 id="playlist-title">Playlist</h1>
+  <div id="videos"></div>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const playlistId = urlParams.get("playlist_id");
+    document.getElementById("playlist-title").textContent = `Playlist: ${playlistId}`;
+    fetch(`/api/playlists/${playlistId}/videos`)
+      .then(res => res.json())
+      .then(videos => {
+        const container = document.getElementById("videos");
+        if (videos.length === 0) {
+          container.innerText = "No videos found.";
+          return;
+        }
+        const ul = document.createElement("ul");
+        videos.forEach(v => {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.textContent = v.title;
+          a.href = `/video.html?video_id=${v.video_id}`;
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+        container.appendChild(ul);
+      });
+  </script>
+</body>
+</html>
