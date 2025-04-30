@@ -50,6 +50,10 @@ transcripts_*/
 # Export directories 
 export_*/
 
+# Inbox folder - ignore content but keep directory
+inbox/*
+!inbox/.gitkeep
+
 # OS specific files
 .DS_Store
 Thumbs.db

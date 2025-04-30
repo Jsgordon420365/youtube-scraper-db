@@ -1,0 +1,55 @@
+
+    Directory: C:\Users\jsgor\Projects\yt_scraper
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d----           4/28/2025  4:54 AM                __pycache__
+d----           4/19/2025  1:08 AM                .cursor
+d----           4/26/2025 12:59 AM                .github
+d----            4/4/2025  2:38 PM                .qodo
+d----           4/19/2025  1:20 AM                .vscode
+d----           4/19/2025  2:49 AM                static
+d----           4/19/2025  2:49 AM                templates
+d----           4/16/2025 12:45 PM                venv
+-a---           3/29/2025  4:00 PM            206 .archive
+-a---           3/30/2025  3:56 AM            367 .dockerignore
+-a---           4/19/2025 12:50 AM            179 .env
+-a---            4/4/2025  8:53 PM            511 .gitignore
+-a---           4/26/2025 12:11 AM            142 .hintrc
+-a---           3/29/2025  6:30 PM           2474 .scrape_playlist_id.py
+-a---           3/30/2025  4:00 AM            770 .scrape.py
+-a---            4/5/2025  3:57 AM          73000 20250405035749.txt
+-a---           3/29/2025  3:25 PM           2413 axiomatic-genre-455219-i8-02643c013f6e.json
+-a---           3/29/2025  6:27 PM            155 config.py
+-a---           3/29/2025  6:37 PM            179 dblcheck.py
+-a---           4/28/2025  6:42 PM              0 DIR.TXT
+-a---           3/30/2025  3:56 AM            304 docker-compose.debug.yml
+-a---           3/30/2025  3:56 AM            127 docker-compose.yml
+-a---           3/30/2025  3:56 AM            868 Dockerfile
+-a---           4/28/2025  4:50 AM           2127 generate_playlists.py
+-a---            4/5/2025  3:59 AM          10376 gui_app.py
+-a---           4/28/2025  4:53 AM            156 harvest_playlists.py
+-a---           4/28/2025  4:56 AM           1711 import_playlists.py
+-a---            4/5/2025  3:42 AM        3978392 main_scraper.log
+-a---            4/5/2025  4:12 AM          16448 main_scraper.py
+-a---           4/28/2025  4:49 AM           1258 migrate_schema.py
+-a---           3/29/2025  4:50 PM          40627 playlists.json
+-a---           3/29/2025  6:14 PM            329 quick.py
+-a---           4/28/2025 11:38 AM            103 requirements.txt
+-a---           3/29/2025  5:40 PM         117950 scrape_all_playlists.json
+-a---           3/29/2025  6:16 PM          22665 scrape_all_playlists.jsonl
+-a---           3/29/2025  6:16 PM          50094 scrape_all_playlists.log
+-a---           3/30/2025  4:02 AM           2800 scrape_all_playlists.py
+-a---           3/29/2025  5:38 PM            240 scrape_all.json
+-a---           3/29/2025  5:38 PM            162 scrape_all.log
+-a---           3/29/2025  4:02 PM            521 test2.py
+-a---           3/29/2025  4:04 PM            366 test3.py
+-a---           4/26/2025 12:08 AM           2339 viewer_app.py
+-a---           4/19/2025  3:02 AM           2646 web_app.py
+-a---            4/4/2025  4:20 PM          16103 youtube_utils.py
+-a---           3/29/2025  5:18 PM         479232 youtube_videos.db
+-a---            4/5/2025  3:42 AM       52027392 youtube.db
+-a---           4/19/2025  1:42 PM          10928 yt NoV8mUciS5A LEARN how to Setup MCP
+                                                  Servers in C.txt
+-a---           3/29/2025  6:16 PM              0 ytdata.db
+
