@@ -4,7 +4,8 @@ import sqlite3
 import os
 
 DB_PATH = "youtube.db"
-PLAYLISTS_JSON = "playlists.json"
+# Allow overriding JSON file via command-line arg
+PLAYLISTS_JSON = sys.argv[1] if len(sys.argv) > 1 else "playlists.json"
 
 def log_message(msg):
     from datetime import datetime

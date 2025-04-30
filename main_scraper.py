@@ -227,6 +227,33 @@ def main():
         logger.critical("Failed to establish read-write database connection. Exiting.")
         return # Cannot proceed without DB connection
 
+    # Ensure playlist_pings table exists for tracking playlist visits
+    try:
+        cursor = db_conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS playlist_pings (
+                ping_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                playlist_id TEXT NOT NULL,
+                pinged_timestamp TEXT NOT NULL,
+                status TEXT,
+                FOREIGN KEY(playlist_id) REFERENCES playlists(playlist_id) ON DELETE CASCADE
+            );
+        """)
+        # Optional index for faster lookup by playlist
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_playlist_pings_playlist ON playlist_pings(playlist_id);")
+        # Ensure playlist metadata columns exist
+        cursor.execute("PRAGMA table_info(playlists);")
+        cols_info = cursor.fetchall()
+        existing_cols = [col[1] for col in cols_info]
+        if 'item_count' not in existing_cols:
+            cursor.execute("ALTER TABLE playlists ADD COLUMN item_count INTEGER;")
+        if 'last_updated' not in existing_cols:
+            cursor.execute("ALTER TABLE playlists ADD COLUMN last_updated TEXT;")
+        db_conn.commit()
+    except Exception as e:
+        logger.error(f"Failed to create or verify 'playlist_pings' or metadata columns: {e}")
+        # Proceed even if ping or metadata setup fails
+
     try:
         playlists_in_db = get_playlists_from_db(db_conn)
         if not playlists_in_db:
@@ -245,18 +272,64 @@ def main():
             playlist_title = pl_data.get('title', playlist_id)
             pl_start_time = time.time()
             logger.info(f"\n{'='*10} Processing Playlist {i+1}/{total_playlists}: '{playlist_title}' ({playlist_id}) {'='*10}")
+            # Record that we're starting processing this playlist
+            ping_id = None
+            try:
+                ping_ts = datetime.now(timezone.utc).isoformat()
+                ping_cursor = db_conn.cursor()
+                ping_cursor.execute(
+                    "INSERT INTO playlist_pings (playlist_id, pinged_timestamp, status) VALUES (?, ?, ?)",
+                    (playlist_id, ping_ts, 'started')
+                )
+                ping_id = ping_cursor.lastrowid
+                db_conn.commit()
+            except Exception as e:
+                logger.warning(f"Could not record ping for playlist {playlist_id}: {e}")
 
             # 1. Get current video IDs from YouTube
             current_video_ids_on_yt = get_video_ids_from_playlist(playlist_id)
+            # Update playlist metadata (item count, last_updated)
+            if current_video_ids_on_yt is not None:
+                try:
+                    meta_ts = datetime.now(timezone.utc).isoformat()
+                    count = len(current_video_ids_on_yt)
+                    db_conn.execute(
+                        "UPDATE playlists SET item_count = ?, last_updated = ? WHERE playlist_id = ?",
+                        (count, meta_ts, playlist_id)
+                    )
+                    db_conn.commit()
+                    logger.debug(f"Updated metadata for playlist {playlist_id}: item_count={count}, last_updated={meta_ts}")
+                except Exception as e:
+                    logger.warning(f"Could not update metadata for playlist {playlist_id}: {e}")
 
             if current_video_ids_on_yt is None:
                 logger.error(f"  Skipping playlist '{playlist_title}' due to failure fetching current videos from YouTube.")
-                continue # Skip to the next playlist
+                # Update ping status to failure
+                if ping_id:
+                    try:
+                        db_conn.execute(
+                            "UPDATE playlist_pings SET status = ? WHERE ping_id = ?",
+                            ('failed_fetch', ping_id)
+                        )
+                        db_conn.commit()
+                    except Exception:
+                        pass
+                continue  # Skip to the next playlist
 
             # 2. Sync playlist_videos table (Add new, Remove old)
             if not sync_playlist_videos_db(db_conn, playlist_id, current_video_ids_on_yt):
-                 logger.error(f" Failed to synchronize playlist_videos table for {playlist_id}. Skipping video processing for this playlist.")
-                 continue
+                logger.error(f" Failed to synchronize playlist_videos table for {playlist_id}. Skipping video processing for this playlist.")
+                # Update ping status to sync failure
+                if ping_id:
+                    try:
+                        db_conn.execute(
+                            "UPDATE playlist_pings SET status = ? WHERE ping_id = ?",
+                            ('sync_failed', ping_id)
+                        )
+                        db_conn.commit()
+                    except Exception:
+                        pass
+                continue
 
             # 3. Iterate through current videos and decide whether to scrape
             total_videos_in_playlist = len(current_video_ids_on_yt)
@@ -306,6 +379,16 @@ def main():
             pl_end_time = time.time()
             pl_duration = pl_end_time - pl_start_time
             logger.info(f"{'='*10} Finished Playlist '{playlist_title}' in {pl_duration:.2f}s {'='*10}")
+            # Update ping status to completed
+            if ping_id:
+                try:
+                    db_conn.execute(
+                        "UPDATE playlist_pings SET status = ? WHERE ping_id = ?",
+                        ('completed', ping_id)
+                    )
+                    db_conn.commit()
+                except Exception:
+                    pass
             playlists_processed_count += 1
 
     except Exception as e:

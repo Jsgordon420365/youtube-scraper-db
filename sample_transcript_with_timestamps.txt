@@ -1,0 +1,16 @@
+TITLE: How to Add Timestamped Transcripts
+URL: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+[00:00] Welcome to this tutorial on adding timestamped transcripts.
+[00:15] Timestamps make it easier to navigate through videos.
+[00:30] You can format timestamps in several ways.
+[00:45] This format uses square brackets at the beginning of each line.
+[01:00] You can also use MM:SS format.
+[01:15] Or even use HH:MM:SS for longer videos.
+[01:30] Timestamps should be consistent throughout the transcript.
+[01:45] They can appear at the start of paragraphs.
+[02:00] Or even in the middle of text if needed.
+[02:15] The system will automatically detect these timestamps.
+[02:30] And will always prefer transcripts with timestamps over those without.
+[02:45] This helps with better search results and navigation.
+[03:00] Thanks for watching this tutorial!

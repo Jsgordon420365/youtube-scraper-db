@@ -1,24 +1,63 @@
-# Database file
+# Database files
 youtube.db
-youtube.db-journal # Include journal files if they appear
+youtube.db-journal
+youtube_videos.db
+ytdata.db
+*.db-shm
+*.db-wal
 
 # Log files
 *.log
-*.json # If you don't want to track JSON logs like scrape_all_playlists.json
+
+# JSON files (except important ones)
+scrape_all.json
+scrape_all_playlists.json
+scrape_all_playlists.jsonl
+
+# Keep important JSON files
+!playlists.json
+
+# Google service account keys
+axiomatic-genre-*.json
 
 # Python cache files
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.Python
+__pypackages__/
 
-# IDE / Editor specific files (optional examples)
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE / Editor specific files
 .vscode/
 .idea/
+.cursor/
+*.swp
+*.swo
+.qodo/
 
-# Service account keys (if you accidentally saved one here)
-*.json # Be careful with this if playlists.json SHOULD be tracked
+# Generated files
+channel_page.html
+channel_scraper.log
+run_me.log
+transcripts_*/
 
-# OS specific files (optional examples)
+# Export directories 
+export_*/
+
+# OS specific files
 .DS_Store
 Thumbs.db
-.qodo
+desktop.ini
+
+# Streamlit caches
+.streamlit/
+
+# Backup files
+*.bak
+*~
