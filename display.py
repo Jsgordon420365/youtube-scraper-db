@@ -232,7 +232,7 @@ def process_video_data(title, video_url, transcript, language='en'):
                 format_func=lambda x: playlist_options[x]
             )
             
-            if selected_playlist and st.button("Add to Playlist"):
+            if selected_playlist and st.button("Add to Playlist", key="add_to_playlist_button"):
                 # Check if the video is already in the playlist
                 cursor.execute(
                     "SELECT * FROM playlist_videos WHERE playlist_id = ? AND video_id = ?",
@@ -555,8 +555,8 @@ def main():
                                 
                                 st.markdown(f"...{highlighted}...")
                                 
-                                with st.expander("View Full Transcript"):
-                                    st.text_area("", transcript, height=300)
+                                # Display full transcript in a separate text area (not nested in an expander)
+                                st.text_area("Full Transcript", transcript, height=300)
                             else:
                                 st.text_area("Transcript", transcript, height=200)
                 else:
@@ -610,7 +610,7 @@ def main():
                 st.text(content[:500] + "..." if len(content) > 500 else content)
             
             # Process file
-            if st.button("Add to Database"):
+            if st.button("Add to Database", key="file_upload_button"):
                 try:
                     # Parse the file content
                     lines = content.splitlines()
