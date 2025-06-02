@@ -48,7 +48,6 @@ def table_exists(conn, table_name):
 def get_connection():
     return sqlite3.connect(DB_PATH, check_same_thread=False)
 
-@st.cache_data(ttl=300)
 def get_transcript(conn, video_id):
     try:
         if not table_exists(conn, 'transcripts'):
@@ -67,7 +66,6 @@ def get_transcript(conn, video_id):
         st.error(f"Error loading transcript: {e}")
         return None
 
-@st.cache_data(ttl=300)  # Cache for 5 minutes
 def get_playlists(conn):
     try:
         if not table_exists(conn, 'playlists') or not table_exists(conn, 'playlist_videos'):
@@ -87,7 +85,6 @@ def get_playlists(conn):
         st.error(f"Error loading playlists: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=300)
 def get_playlist_videos(conn, playlist_id):
     try:
         if not table_exists(conn, 'playlist_videos') or not table_exists(conn, 'videos'):
@@ -109,7 +106,6 @@ def get_playlist_videos(conn, playlist_id):
         st.error(f"Error loading playlist videos: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=300)
 def get_video_playlists(conn, video_id):
     try:
         if not table_exists(conn, 'playlists') or not table_exists(conn, 'playlist_videos'):
@@ -127,7 +123,6 @@ def get_video_playlists(conn, video_id):
         st.error(f"Error loading video playlists: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=300)
 def get_duplicate_videos(conn):
     try:
         if not table_exists(conn, 'videos') or not table_exists(conn, 'playlist_videos'):
@@ -147,7 +142,6 @@ def get_duplicate_videos(conn):
         st.error(f"Error loading duplicate videos: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=300)
 def get_summary_stats(conn):
     stats = {}
     try:
