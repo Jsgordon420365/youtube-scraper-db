@@ -2,6 +2,7 @@
 import json
 import sqlite3
 import os
+import sys
 
 DB_PATH = "youtube.db"
 # Allow overriding JSON file via command-line arg

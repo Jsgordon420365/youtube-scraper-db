@@ -180,7 +180,7 @@ def sync_playlist_videos_db(conn, playlist_id, current_video_ids_on_yt):
 
 
 # --- Playlist/Video Fetching --- (Keep using Pytube for playlist contents for now)
-def get_video_ids_from_playlist(playlist_id: str) -> set[str] | None:
+def get_video_ids_from_playlist(playlist_id: str):
     """Fetches current video IDs from a YouTube playlist using pytube."""
     playlist_url = f"https://www.youtube.com/playlist?list={playlist_id}"
     logger.info(f"  Fetching current video IDs from YouTube playlist: {playlist_url}")

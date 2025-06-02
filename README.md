@@ -2,11 +2,21 @@
 
 A comprehensive system for scraping, managing, and searching YouTube videos, playlists, and transcripts.
 
+## Vision & Purpose
+
+This project is designed as a one-stop system for building and maintaining your own searchable archive of YouTube content. It provides:
+
+- Automated scraping of your channel's playlists, video metadata, and transcripts.
+- Transcript management with batch import/export and manual editing support.
+- A searchable, browsable SQLite database with cross-link detection.
+- Interactive dashboards and CLIs for exploring, updating, and visualizing your data.
+
 ## Features
 
 - **Scrape YouTube Data**: Automatically fetch videos, metadata, and transcripts from your playlists
 - **Searchable Database**: Browse your playlists and search through video transcripts
 - **Interactive Dashboard**: Visualize statistics about your YouTube data
+- **Cross-Linking Detection**: Identify videos that appear in multiple playlists
 - **Transcript Management**: Add, update, and export transcripts with support for timestamps
 - **Batch Processing**: Process multiple files through an inbox system
 - **Command Line Interface**: Run tools via command line or interactive mode
@@ -159,6 +169,52 @@ Options:
 - If transcripts aren't being found, try manually adding them
 - Ensure transcript files follow the correct format
 - Check the log files for detailed error messages
+## Quick Start & Updates
+
+To install or update dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+To initialize or migrate the database schema:
+```bash
+python migrate_schema.py
+```
+
+To fetch and import your channel playlists:
+```bash
+python get_channel_playlists.py <CHANNEL_IDENTIFIER> playlists.json
+python import_playlists.py playlists.json
+```
+
+To scrape or refresh all videos and transcripts:
+```bash
+python main_scraper.py
+```
+Or use the all-in-one updater:
+```bash
+python run_me.py
+```
+
+To update playlist metadata (item counts & timestamps):
+```bash
+python update_playlists_metadata.py
+```
+
+To process transcript files in batch (or add single transcripts):
+```bash
+process_transcripts.bat
+```
+
+To launch the Streamlit dashboard:
+```bash
+run_streamlit_app.bat
+```
+
+To launch the Flask viewer:
+```bash
+python viewer_app.py
+```
 
 ## License
 

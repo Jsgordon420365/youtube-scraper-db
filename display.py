@@ -23,6 +23,19 @@ st.set_page_config(
 def get_connection():
     return sqlite3.connect(DB_PATH, check_same_thread=False)
 
+@st.cache_data(ttl=300)
+def get_transcript(video_id):
+    conn = get_connection()
+    query = """
+    SELECT video_id, language, transcript, last_fetched_timestamp
+    FROM transcripts
+    WHERE video_id = ?
+    """
+    df = pd.read_sql_query(query, conn, params=(video_id,))
+    if not df.empty:
+        return df.iloc[0].to_dict()
+    return None
+
 @st.cache_data(ttl=300)  # Cache for 5 minutes
 def get_playlists():
     conn = get_connection()
@@ -56,17 +69,34 @@ def get_playlist_videos(playlist_id):
     return df
 
 @st.cache_data(ttl=300)
-def get_transcript(video_id):
+def get_video_playlists(video_id):
+    """Get all playlists that contain a specific video"""
     conn = get_connection()
     query = """
-    SELECT video_id, language, transcript, last_fetched_timestamp
-    FROM transcripts
-    WHERE video_id = ?
+    SELECT p.playlist_id, p.title, p.url
+    FROM playlists p
+    JOIN playlist_videos pv ON p.playlist_id = pv.playlist_id
+    WHERE pv.video_id = ?
+    ORDER BY p.title
     """
     df = pd.read_sql_query(query, conn, params=(video_id,))
-    if not df.empty:
-        return df.iloc[0].to_dict()
-    return None
+    return df
+
+@st.cache_data(ttl=300)
+def get_duplicate_videos():
+    """Find videos that appear in multiple playlists"""
+    conn = get_connection()
+    query = """
+    SELECT v.video_id, v.title, v.author, v.publish_date, v.video_url,
+           COUNT(DISTINCT pv.playlist_id) as playlist_count
+    FROM videos v
+    JOIN playlist_videos pv ON v.video_id = pv.video_id
+    GROUP BY v.video_id
+    HAVING COUNT(DISTINCT pv.playlist_id) > 1
+    ORDER BY playlist_count DESC, v.title
+    """
+    df = pd.read_sql_query(query, conn)
+    return df
 
 @st.cache_data(ttl=300)
 def get_summary_stats():
@@ -85,6 +115,17 @@ def get_summary_stats():
     # Videos with transcripts
     query = "SELECT COUNT(*) as count FROM transcripts"
     stats['videos_with_transcripts'] = pd.read_sql_query(query, conn).iloc[0]['count']
+    
+    # Cross-linked videos (videos in multiple playlists)
+    query = """
+    SELECT COUNT(DISTINCT v.video_id) as count
+    FROM videos v
+    JOIN playlist_videos pv ON v.video_id = pv.video_id
+    GROUP BY v.video_id
+    HAVING COUNT(DISTINCT pv.playlist_id) > 1
+    """
+    cross_linked = pd.read_sql_query(query, conn)
+    stats['cross_linked_videos'] = len(cross_linked) if not cross_linked.empty else 0
     
     # Last update time
     query = """
@@ -286,7 +327,7 @@ def main():
     
     # Sidebar
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Dashboard", "Playlists", "Search", "Add Video"])
+    page = st.sidebar.radio("Go to", ["Dashboard", "Playlists", "Search", "Cross-Links", "Add Video"])
     
     # Dashboard Page
     if page == "Dashboard":
@@ -295,7 +336,7 @@ def main():
         stats = get_summary_stats()
         
         # Create three columns for the metrics
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             st.metric("Total Playlists", stats['total_playlists'])
@@ -305,6 +346,9 @@ def main():
         
         with col3:
             st.metric("Videos with Transcripts", stats['videos_with_transcripts'])
+        
+        with col4:
+            st.metric("Cross-Linked Videos", stats['cross_linked_videos'])
         
         st.subheader("Last Update")
         if stats['last_update'] != "Never":
@@ -561,6 +605,110 @@ def main():
                                 st.text_area("Transcript", transcript, height=200)
                 else:
                     st.info("No transcripts found matching your search query.")
+    
+    # Cross-Links Page
+    elif page == "Cross-Links":
+        st.header("Cross-Linked Videos")
+        st.subheader("Videos That Appear in Multiple Playlists")
+        
+        # Get videos that appear in multiple playlists
+        duplicate_videos = get_duplicate_videos()
+        
+        if duplicate_videos.empty:
+            st.info("No videos found that appear in multiple playlists.")
+        else:
+            st.write(f"Found {len(duplicate_videos)} videos that appear in multiple playlists.")
+            
+            # Create dropdown selector for videos
+            video_options = {}
+            for _, row in duplicate_videos.iterrows():
+                # Format as "Title (Author) - in X playlists"
+                display_text = f"{row['title']} ({row['author'] if not pd.isna(row['author']) else 'Unknown'}) - in {row['playlist_count']} playlists"
+                video_options[row['video_id']] = display_text
+            
+            selected_video = st.selectbox(
+                "Select a video to see its playlists:",
+                options=list(video_options.keys()),
+                format_func=lambda x: video_options[x],
+                key="crosslink_video_select"
+            )
+            
+            if selected_video:
+                # Get the video details
+                video_row = duplicate_videos[duplicate_videos['video_id'] == selected_video].iloc[0]
+                
+                # Display video info
+                st.markdown(f"### {video_row['title']}")
+                st.write(f"**Channel:** {video_row['author'] if not pd.isna(video_row['author']) else 'Unknown'}")
+                st.write(f"**Published:** {video_row['publish_date'] if not pd.isna(video_row['publish_date']) else 'Unknown'}")
+                st.write(f"**Video Link:** [Watch on YouTube]({video_row['video_url']})")
+                
+                # Get all playlists containing this video
+                playlists_with_video = get_video_playlists(selected_video)
+                
+                # Display playlists table
+                st.subheader(f"Appears in {len(playlists_with_video)} Playlists:")
+                st.dataframe(
+                    playlists_with_video,
+                    column_config={
+                        "playlist_id": None,  # Hide playlist_id column
+                        "title": "Playlist Title",
+                        "url": st.column_config.LinkColumn("Playlist URL")
+                    },
+                    hide_index=True
+                )
+                
+                # Offer to remove from playlists
+                st.subheader("Remove from Playlists")
+                st.write("Select playlists to remove this video from:")
+                
+                # Create checkboxes for each playlist
+                selected_playlists = []
+                for i, playlist_row in playlists_with_video.iterrows():
+                    playlist_id = playlist_row['playlist_id']
+                    if st.checkbox(playlist_row['title'], key=f"remove_from_{playlist_id}"):
+                        selected_playlists.append(playlist_id)
+                
+                if selected_playlists and st.button("Remove Selected", key="remove_from_playlists_btn"):
+                    conn = get_connection()
+                    cursor = conn.cursor()
+                    try:
+                        for playlist_id in selected_playlists:
+                            cursor.execute(
+                                "DELETE FROM playlist_videos WHERE playlist_id = ? AND video_id = ?",
+                                (playlist_id, selected_video)
+                            )
+                        conn.commit()
+                        st.success(f"Removed video from {len(selected_playlists)} playlists. Refresh to update.")
+                        st.experimental_rerun()
+                    except Exception as e:
+                        conn.rollback()
+                        st.error(f"Error removing from playlists: {e}")
+                    finally:
+                        conn.close()
+            
+            # Show table of all cross-linked videos
+            with st.expander("View All Cross-Linked Videos"):
+                # Add formatted column for better display
+                display_df = duplicate_videos.copy()
+                display_df['formatted_title'] = display_df.apply(
+                    lambda x: f"{x['title']} ({x['author'] if not pd.isna(x['author']) else 'Unknown'})",
+                    axis=1
+                )
+                
+                st.dataframe(
+                    display_df,
+                    column_config={
+                        "video_id": None,  # Hide video_id column
+                        "title": None,    # Hide title as we use formatted_title
+                        "author": None,   # Hide author as it's in formatted_title
+                        "formatted_title": "Video Title",
+                        "publish_date": "Published Date",
+                        "playlist_count": "# of Playlists",
+                        "video_url": st.column_config.LinkColumn("Video Link")
+                    },
+                    hide_index=True
+                )
     
     # Add Video Page
     elif page == "Add Video":

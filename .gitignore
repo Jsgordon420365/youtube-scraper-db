@@ -65,3 +65,12 @@ desktop.ini
 # Backup files
 *.bak
 *~
+
+# Environment variables
+.env
+
+# Jupyter notebook checkpoints
+*.ipynb_checkpoints
+
+# macOS AppleDouble files
+.AppleDouble

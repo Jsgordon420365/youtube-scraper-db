@@ -61,7 +61,7 @@ def resolve_channel_url(spec: str) -> str:
     # Fallback: treat as channel ID
     return f"https://www.youtube.com/channel/{spec}"
 
-def fetch_playlists(channel_url: str) -> list[dict]:
+def fetch_playlists(channel_url: str):
     """Fetch playlist IDs and titles from a channel's /playlists page."""
     playlists_page = channel_url.rstrip('/') + '/playlists'
     logger.info(f"Fetching playlists page: {playlists_page}")
