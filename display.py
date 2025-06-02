@@ -18,138 +18,184 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- Robust DB Connection and Table Check ---
+def get_db_connection():
+    db_file = os.path.abspath(DB_PATH)
+    if not os.path.exists(db_file):
+        st.error(f"Database file not found at: {db_file}")
+        return None
+    try:
+        conn = sqlite3.connect(f'file:{db_file}?mode=ro', uri=True, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except sqlite3.Error as e:
+        st.error(f"Database connection error: {e}")
+        return None
+    except Exception as e:
+        st.error(f"Unexpected error connecting to DB: {e}")
+        return None
+
+def table_exists(conn, table_name):
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+        return cursor.fetchone() is not None
+    except Exception:
+        return False
+
 # Create a connection to the database
 @st.cache_resource
 def get_connection():
     return sqlite3.connect(DB_PATH, check_same_thread=False)
 
 @st.cache_data(ttl=300)
-def get_transcript(video_id):
-    conn = get_connection()
-    query = """
-    SELECT video_id, language, transcript, last_fetched_timestamp
-    FROM transcripts
-    WHERE video_id = ?
-    """
-    df = pd.read_sql_query(query, conn, params=(video_id,))
-    if not df.empty:
-        return df.iloc[0].to_dict()
-    return None
+def get_transcript(conn, video_id):
+    try:
+        if not table_exists(conn, 'transcripts'):
+            st.error("Transcripts table missing.")
+            return None
+        query = """
+        SELECT video_id, language, transcript, last_fetched_timestamp
+        FROM transcripts
+        WHERE video_id = ?
+        """
+        df = pd.read_sql_query(query, conn, params=(video_id,))
+        if not df.empty:
+            return df.iloc[0].to_dict()
+        return None
+    except Exception as e:
+        st.error(f"Error loading transcript: {e}")
+        return None
 
 @st.cache_data(ttl=300)  # Cache for 5 minutes
-def get_playlists():
-    conn = get_connection()
-    query = """
-    SELECT p.playlist_id, p.title, p.url, 
-           COUNT(pv.video_id) as video_count,
-           p.last_updated
-    FROM playlists p
-    LEFT JOIN playlist_videos pv ON p.playlist_id = pv.playlist_id
-    GROUP BY p.playlist_id
-    ORDER BY video_count DESC
-    """
-    df = pd.read_sql_query(query, conn)
-    return df
+def get_playlists(conn):
+    try:
+        if not table_exists(conn, 'playlists') or not table_exists(conn, 'playlist_videos'):
+            st.error("Required tables missing for playlists page.")
+            return pd.DataFrame()
+        query = """
+        SELECT p.playlist_id, p.title, p.url, \
+               COUNT(pv.video_id) as video_count,\
+               p.last_updated
+        FROM playlists p
+        LEFT JOIN playlist_videos pv ON p.playlist_id = pv.playlist_id
+        GROUP BY p.playlist_id
+        ORDER BY video_count DESC
+        """
+        return pd.read_sql_query(query, conn)
+    except Exception as e:
+        st.error(f"Error loading playlists: {e}")
+        return pd.DataFrame()
 
 @st.cache_data(ttl=300)
-def get_playlist_videos(playlist_id):
-    conn = get_connection()
-    query = """
-    SELECT v.video_id, v.title, v.publish_date, v.duration_seconds, 
-           v.view_count, v.author, v.video_url,
-           v.last_scraped_timestamp,
-           CASE WHEN t.video_id IS NOT NULL THEN 1 ELSE 0 END as has_transcript
-    FROM playlist_videos pv
-    JOIN videos v ON pv.video_id = v.video_id
-    LEFT JOIN transcripts t ON v.video_id = t.video_id
-    WHERE pv.playlist_id = ?
-    ORDER BY v.publish_date DESC
-    """
-    df = pd.read_sql_query(query, conn, params=(playlist_id,))
-    return df
+def get_playlist_videos(conn, playlist_id):
+    try:
+        if not table_exists(conn, 'playlist_videos') or not table_exists(conn, 'videos'):
+            st.error("Required tables missing for playlist videos.")
+            return pd.DataFrame()
+        query = """
+        SELECT v.video_id, v.title, v.publish_date, v.duration_seconds, \
+               v.view_count, v.author, v.video_url,\
+               v.last_scraped_timestamp,\
+               CASE WHEN t.video_id IS NOT NULL THEN 1 ELSE 0 END as has_transcript
+        FROM playlist_videos pv
+        JOIN videos v ON pv.video_id = v.video_id
+        LEFT JOIN transcripts t ON v.video_id = t.video_id
+        WHERE pv.playlist_id = ?
+        ORDER BY v.publish_date DESC
+        """
+        return pd.read_sql_query(query, conn, params=(playlist_id,))
+    except Exception as e:
+        st.error(f"Error loading playlist videos: {e}")
+        return pd.DataFrame()
 
 @st.cache_data(ttl=300)
-def get_video_playlists(video_id):
-    """Get all playlists that contain a specific video"""
-    conn = get_connection()
-    query = """
-    SELECT p.playlist_id, p.title, p.url
-    FROM playlists p
-    JOIN playlist_videos pv ON p.playlist_id = pv.playlist_id
-    WHERE pv.video_id = ?
-    ORDER BY p.title
-    """
-    df = pd.read_sql_query(query, conn, params=(video_id,))
-    return df
+def get_video_playlists(conn, video_id):
+    try:
+        if not table_exists(conn, 'playlists') or not table_exists(conn, 'playlist_videos'):
+            st.error("Required tables missing for video playlists.")
+            return pd.DataFrame()
+        query = """
+        SELECT p.playlist_id, p.title, p.url
+        FROM playlists p
+        JOIN playlist_videos pv ON p.playlist_id = pv.playlist_id
+        WHERE pv.video_id = ?
+        ORDER BY p.title
+        """
+        return pd.read_sql_query(query, conn, params=(video_id,))
+    except Exception as e:
+        st.error(f"Error loading video playlists: {e}")
+        return pd.DataFrame()
 
 @st.cache_data(ttl=300)
-def get_duplicate_videos():
-    """Find videos that appear in multiple playlists"""
-    conn = get_connection()
-    query = """
-    SELECT v.video_id, v.title, v.author, v.publish_date, v.video_url,
-           COUNT(DISTINCT pv.playlist_id) as playlist_count
-    FROM videos v
-    JOIN playlist_videos pv ON v.video_id = pv.video_id
-    GROUP BY v.video_id
-    HAVING COUNT(DISTINCT pv.playlist_id) > 1
-    ORDER BY playlist_count DESC, v.title
-    """
-    df = pd.read_sql_query(query, conn)
-    return df
+def get_duplicate_videos(conn):
+    try:
+        if not table_exists(conn, 'videos') or not table_exists(conn, 'playlist_videos'):
+            st.error("Required tables missing for cross-links.")
+            return pd.DataFrame()
+        query = """
+        SELECT v.video_id, v.title, v.author, v.publish_date, v.video_url,\
+               COUNT(DISTINCT pv.playlist_id) as playlist_count
+        FROM videos v
+        JOIN playlist_videos pv ON v.video_id = pv.video_id
+        GROUP BY v.video_id
+        HAVING COUNT(DISTINCT pv.playlist_id) > 1
+        ORDER BY playlist_count DESC, v.title
+        """
+        return pd.read_sql_query(query, conn)
+    except Exception as e:
+        st.error(f"Error loading duplicate videos: {e}")
+        return pd.DataFrame()
 
 @st.cache_data(ttl=300)
-def get_summary_stats():
-    conn = get_connection()
-    
+def get_summary_stats(conn):
     stats = {}
-    
-    # Total playlists
-    query = "SELECT COUNT(*) as count FROM playlists"
-    stats['total_playlists'] = pd.read_sql_query(query, conn).iloc[0]['count']
-    
-    # Total videos
-    query = "SELECT COUNT(*) as count FROM videos"
-    stats['total_videos'] = pd.read_sql_query(query, conn).iloc[0]['count']
-    
-    # Videos with transcripts
-    query = "SELECT COUNT(*) as count FROM transcripts"
-    stats['videos_with_transcripts'] = pd.read_sql_query(query, conn).iloc[0]['count']
-    
-    # Cross-linked videos (videos in multiple playlists)
-    query = """
-    SELECT COUNT(DISTINCT v.video_id) as count
-    FROM videos v
-    JOIN playlist_videos pv ON v.video_id = pv.video_id
-    GROUP BY v.video_id
-    HAVING COUNT(DISTINCT pv.playlist_id) > 1
-    """
-    cross_linked = pd.read_sql_query(query, conn)
-    stats['cross_linked_videos'] = len(cross_linked) if not cross_linked.empty else 0
-    
-    # Last update time
-    query = """
-    SELECT MAX(last_scraped_timestamp) as last_update 
-    FROM videos
-    WHERE last_scraped_timestamp IS NOT NULL
-    """
-    last_update = pd.read_sql_query(query, conn).iloc[0]['last_update']
-    if last_update:
-        stats['last_update'] = last_update
-    else:
-        stats['last_update'] = "Never"
-    
-    # Top 5 channels
-    query = """
-    SELECT author, COUNT(*) as video_count
-    FROM videos
-    WHERE author IS NOT NULL
-    GROUP BY author
-    ORDER BY video_count DESC
-    LIMIT 5
-    """
-    stats['top_channels'] = pd.read_sql_query(query, conn)
-    
+    try:
+        required = ['playlists','videos','transcripts','playlist_videos']
+        if not all(table_exists(conn, t) for t in required):
+            st.error("One or more required tables are missing from the database. Please run the migration and import scripts.")
+            return {k: 'N/A' for k in ['total_playlists','total_videos','videos_with_transcripts','cross_linked_videos','last_update','top_channels']}
+        # Total playlists
+        query = "SELECT COUNT(*) as count FROM playlists"
+        stats['total_playlists'] = pd.read_sql_query(query, conn).iloc[0]['count']
+        # Total videos
+        query = "SELECT COUNT(*) as count FROM videos"
+        stats['total_videos'] = pd.read_sql_query(query, conn).iloc[0]['count']
+        # Videos with transcripts
+        query = "SELECT COUNT(*) as count FROM transcripts"
+        stats['videos_with_transcripts'] = pd.read_sql_query(query, conn).iloc[0]['count']
+        # Cross-linked videos (videos in multiple playlists)
+        query = """
+        SELECT COUNT(DISTINCT v.video_id) as count
+        FROM videos v
+        JOIN playlist_videos pv ON v.video_id = pv.video_id
+        GROUP BY v.video_id
+        HAVING COUNT(DISTINCT pv.playlist_id) > 1
+        """
+        cross_linked = pd.read_sql_query(query, conn)
+        stats['cross_linked_videos'] = len(cross_linked) if not cross_linked.empty else 0
+        # Last update time
+        query = """
+        SELECT MAX(last_scraped_timestamp) as last_update 
+        FROM videos
+        WHERE last_scraped_timestamp IS NOT NULL
+        """
+        last_update = pd.read_sql_query(query, conn).iloc[0]['last_update']
+        stats['last_update'] = last_update if last_update else "Never"
+        # Top 5 channels
+        query = """
+        SELECT author, COUNT(*) as video_count
+        FROM videos
+        WHERE author IS NOT NULL
+        GROUP BY author
+        ORDER BY video_count DESC
+        LIMIT 5
+        """
+        stats['top_channels'] = pd.read_sql_query(query, conn)
+    except Exception as e:
+        st.error(f"Error loading summary stats: {e}")
+        stats = {k: 'N/A' for k in ['total_playlists','total_videos','videos_with_transcripts','cross_linked_videos','last_update','top_channels']}
+        stats['top_channels'] = pd.DataFrame()
     return stats
 
 def format_duration(seconds):
@@ -188,40 +234,32 @@ def extract_video_id(youtube_url):
     return None
 
 def get_playlists_for_selection(conn):
-    """Get all playlists for the selection dropdown"""
-    cursor = conn.cursor()
-    cursor.execute("SELECT playlist_id, title FROM playlists ORDER BY title")
-    playlists = cursor.fetchall()
-    
-    if not playlists:
+    try:
+        if not table_exists(conn, 'playlists'):
+            return None
+        cursor = conn.cursor()
+        cursor.execute("SELECT playlist_id, title FROM playlists ORDER BY title")
+        playlists = cursor.fetchall()
+        if not playlists:
+            return None
+        return {playlist[0]: playlist[1] for playlist in playlists}
+    except Exception:
         return None
-    
-    # Create a dictionary with playlist_id as key and title as value
-    return {playlist[0]: playlist[1] for playlist in playlists}
 
 def process_video_data(title, video_url, transcript, language='en'):
-    """Process video data and add it to the database"""
-    # Extract video ID from URL
     video_id = extract_video_id(video_url)
-    
     if not video_id:
         st.error(f"Could not extract video ID from URL: {video_url}")
         return False
-    
-    # Connect to database
-    conn = get_connection()
+    conn = get_db_connection()
+    if not conn:
+        return False
     cursor = conn.cursor()
-    
     try:
-        # Add video to videos table if it doesn't exist
         timestamp = datetime.now().isoformat()
-        
-        # Check if video already exists
         cursor.execute("SELECT video_id FROM videos WHERE video_id = ?", (video_id,))
         video_exists = cursor.fetchone() is not None
-        
         if video_exists:
-            # Update existing video
             cursor.execute(
                 """UPDATE videos 
                    SET title = ?, video_url = ?, last_scraped_timestamp = ?
@@ -230,7 +268,6 @@ def process_video_data(title, video_url, transcript, language='en'):
             )
             st.success(f"Updated existing video: {title}")
         else:
-            # Insert new video
             cursor.execute(
                 """INSERT INTO videos 
                    (video_id, title, video_url, last_scraped_timestamp)
@@ -238,13 +275,9 @@ def process_video_data(title, video_url, transcript, language='en'):
                 (video_id, title, video_url, timestamp)
             )
             st.success(f"Added new video: {title}")
-        
-        # Add transcript
         cursor.execute("SELECT video_id FROM transcripts WHERE video_id = ?", (video_id,))
         transcript_exists = cursor.fetchone() is not None
-        
         if transcript_exists:
-            # Update existing transcript
             cursor.execute(
                 """UPDATE transcripts 
                    SET language = ?, transcript = ?, last_fetched_timestamp = ?
@@ -253,7 +286,6 @@ def process_video_data(title, video_url, transcript, language='en'):
             )
             st.success("Updated existing transcript")
         else:
-            # Insert new transcript
             cursor.execute(
                 """INSERT INTO transcripts 
                    (video_id, language, transcript, last_fetched_timestamp)
@@ -261,10 +293,7 @@ def process_video_data(title, video_url, transcript, language='en'):
                 (video_id, language, transcript, timestamp)
             )
             st.success("Added new transcript")
-        
-        # Add to playlists (optional)
         playlist_options = get_playlists_for_selection(conn)
-        
         if playlist_options:
             st.subheader("Add this video to a playlist")
             selected_playlist = st.selectbox(
@@ -272,35 +301,26 @@ def process_video_data(title, video_url, transcript, language='en'):
                 options=list(playlist_options.keys()),
                 format_func=lambda x: playlist_options[x]
             )
-            
             if selected_playlist and st.button("Add to Playlist", key="add_to_playlist_button"):
-                # Check if the video is already in the playlist
                 cursor.execute(
                     "SELECT * FROM playlist_videos WHERE playlist_id = ? AND video_id = ?",
                     (selected_playlist, video_id)
                 )
-                
                 if cursor.fetchone() is None:
-                    # Get the highest position in the playlist
                     cursor.execute(
                         "SELECT MAX(position) FROM playlist_videos WHERE playlist_id = ?",
                         (selected_playlist,)
                     )
                     max_position = cursor.fetchone()[0] or 0
-                    
-                    # Add to playlist with incremented position
                     cursor.execute(
                         "INSERT INTO playlist_videos (playlist_id, video_id, position) VALUES (?, ?, ?)",
                         (selected_playlist, video_id, max_position + 1)
                     )
-                    
                     st.success(f"Added to playlist: {playlist_options[selected_playlist]}")
                 else:
                     st.info("This video is already in the selected playlist")
-        
         conn.commit()
         return True
-        
     except Exception as e:
         conn.rollback()
         st.error(f"Error adding video to database: {e}")
@@ -329,11 +349,15 @@ def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Go to", ["Dashboard", "Playlists", "Search", "Cross-Links", "Add Video"])
     
+    conn = get_db_connection()
+    if not conn:
+        st.stop()
+
     # Dashboard Page
     if page == "Dashboard":
         st.header("YouTube Data Dashboard")
         
-        stats = get_summary_stats()
+        stats = get_summary_stats(conn)
         
         # Create three columns for the metrics
         col1, col2, col3, col4 = st.columns(4)
@@ -353,7 +377,7 @@ def main():
         st.subheader("Last Update")
         if stats['last_update'] != "Never":
             try:
-                last_update_dt = datetime.fromisoformat(stats['last_update'].replace('Z', '+00:00'))
+                last_update_dt = pd.to_datetime(stats['last_update'])
                 st.info(f"Database was last updated on {last_update_dt.strftime('%B %d, %Y at %H:%M:%S UTC')}")
             except:
                 st.info(f"Database was last updated: {stats['last_update']}")
@@ -361,7 +385,7 @@ def main():
             st.warning("Database has never been updated. Run the scraper to collect data.")
         
         # Top channels chart
-        if not stats['top_channels'].empty:
+        if isinstance(stats['top_channels'], pd.DataFrame) and not stats['top_channels'].empty:
             st.subheader("Top Channels")
             fig = px.bar(stats['top_channels'], x='author', y='video_count', color='video_count',
                          labels={'author': 'Channel', 'video_count': 'Number of Videos'},
@@ -385,7 +409,7 @@ def main():
         
         # Get all playlists
         try:
-            playlists_df = get_playlists()
+            playlists_df = get_playlists(conn)
             
             if playlists_df.empty:
                 st.warning("No playlists found in the database. Run the scraper first.")
@@ -424,7 +448,7 @@ def main():
             
             if selected_playlist:
                 # Get videos for the selected playlist
-                videos_df = get_playlist_videos(selected_playlist)
+                videos_df = get_playlist_videos(conn, selected_playlist)
                 
                 if videos_df.empty:
                     st.info(f"No videos found for playlist: {display_df[display_df['playlist_id'] == selected_playlist]['title'].iloc[0]}")
@@ -489,7 +513,7 @@ def main():
                     # Display transcript if available
                     if video_row['has_transcript']:
                         st.subheader("Video Transcript")
-                        transcript_data = get_transcript(selected_video)
+                        transcript_data = get_transcript(conn, selected_video)
                         
                         if transcript_data:
                             st.write(f"**Language:** {transcript_data['language']}")
@@ -612,7 +636,7 @@ def main():
         st.subheader("Videos That Appear in Multiple Playlists")
         
         # Get videos that appear in multiple playlists
-        duplicate_videos = get_duplicate_videos()
+        duplicate_videos = get_duplicate_videos(conn)
         
         if duplicate_videos.empty:
             st.info("No videos found that appear in multiple playlists.")
@@ -644,7 +668,7 @@ def main():
                 st.write(f"**Video Link:** [Watch on YouTube]({video_row['video_url']})")
                 
                 # Get all playlists containing this video
-                playlists_with_video = get_video_playlists(selected_video)
+                playlists_with_video = get_video_playlists(conn, selected_video)
                 
                 # Display playlists table
                 st.subheader(f"Appears in {len(playlists_with_video)} Playlists:")
@@ -670,7 +694,6 @@ def main():
                         selected_playlists.append(playlist_id)
                 
                 if selected_playlists and st.button("Remove Selected", key="remove_from_playlists_btn"):
-                    conn = get_connection()
                     cursor = conn.cursor()
                     try:
                         for playlist_id in selected_playlists:
