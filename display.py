@@ -434,12 +434,14 @@ def main():
             )
             
             # Playlist Selector
+            playlist_options = display_df['playlist_id'].tolist()
+            playlist_titles = dict(zip(display_df['playlist_id'], display_df['title']))
             selected_playlist = st.selectbox(
                 "Select a playlist to view its videos:",
-                options=display_df['playlist_id'].tolist(),
-                format_func=lambda x: display_df[display_df['playlist_id'] == x]['title'].iloc[0]
+                options=playlist_options,
+                format_func=lambda x: playlist_titles.get(x, x),
+                key=f"playlist_select_{search}"
             )
-            
             if selected_playlist:
                 # Get videos for the selected playlist
                 videos_df = get_playlist_videos(conn, selected_playlist)
