@@ -91,7 +91,10 @@ def scrape_and_save_video(video_id: str, db_path: str) -> bool:
                 "video_url": info_dict.get('webpage_url', video_url),
                 "last_scraped_timestamp": datetime.now(timezone.utc).isoformat()
             }
-            logger.info(f"  Successfully fetched metadata for {video_id} using yt-dlp (Title: {video_data.get('title') is not None})")
+            logger.info(
+                f"  Successfully fetched metadata for {video_id} using yt-dlp "
+                f"(Title: {video_data.get('title')})"
+            )
             metadata_fetched = True
 
     # --- Catch yt-dlp specific and general errors during metadata fetch ---
